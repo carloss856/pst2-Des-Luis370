@@ -49,13 +49,14 @@ const ServicioEditForm = () => {
       <input name="estado" value={form.estado} onChange={handleChange} placeholder="Estado" required />
       <input name="costo_estimado" type="number" value={form.costo_estimado} onChange={handleChange} placeholder="Costo Estimado" />
       <input name="costo_real" type="number" value={form.costo_real} onChange={handleChange} placeholder="Costo Real" />
-      {(rol === 'gerente' || rol === 'superadmin') && (
+      {(rol === 'Gerente' || rol === 'Administrador') && (
         <label>
           Validado por gerente
           <input name="validado_por_gerente" type="checkbox" checked={form.validado_por_gerente} onChange={handleChange} />
         </label>
       )}
       <button type="submit">Actualizar</button>
+      <button type="button" onClick={() => navigate('/servicios')}>Volver</button>
       {error && <div style={{ color: 'red' }}>{error}</div>}
     </form>
   );

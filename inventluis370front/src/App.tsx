@@ -15,24 +15,35 @@ import ServicioForm from './components/ServicioForm';
 import ServicioEditForm from './components/ServicioEditForm';
 
 // Componentes vacíos para los demás módulos
-const Dashboard = () => <h2>Dashboard</h2>;
+const Dashboard = () => {
+  const rol = localStorage.getItem('rol_usuario');
+  return <h2>Dashboard - Rol: {rol}</h2>;
+};
 const Repuestos = () => <h2>Repuestos</h2>;
 const Inventario = () => <h2>Inventario</h2>;
 const Solicitudes = () => <h2>Solicitudes de Repuestos</h2>;
 const Notificaciones = () => <h2>Notificaciones</h2>;
 const Reportes = () => <h2>Reportes</h2>;
 
-function PrivateRoute({ children }) {
+function PrivateRoute({ children, roles }: { children: React.ReactNode, roles?: string[] }) {
   const isLogged = !!localStorage.getItem('token');
-  return isLogged ? children : <Navigate to="/login" />;
+  const rol = localStorage.getItem('rol_usuario');
+  if (!isLogged) return <Navigate to="/login" />;
+  if (roles && !roles.includes(rol || '')) return <Navigate to="/dashboard" />;
+  return <>{children}</>;
 }
 
 function Navbar() {
+  const rol = localStorage.getItem('rol_usuario');
   return (
     <nav>
       <Link to="/dashboard">Dashboard</Link> |{" "}
       <Link to="/empresas">Empresas</Link> |{" "}
-      <Link to="/usuarios">Usuarios</Link> |{" "}
+      {(rol === 'Administrador' || rol === 'Gerente') && (
+        <>
+          <Link to="/usuarios">Usuarios</Link> |{" "}
+        </>
+      )}
       <Link to="/equipos">Equipos</Link> |{" "}
       <Link to="/servicios">Servicios</Link> |{" "}
       <Link to="/repuestos">Repuestos</Link> |{" "}
@@ -94,7 +105,7 @@ function App() {
         <Route
           path="/usuarios"
           element={
-            <PrivateRoute>
+            <PrivateRoute roles={['Administrador', 'Gerente']}>
               <Navbar />
               <UsuariosList />
             </PrivateRoute>
@@ -103,7 +114,7 @@ function App() {
         <Route
           path="/usuarios/crear"
           element={
-            <PrivateRoute>
+            <PrivateRoute roles={['Administrador', 'Gerente']}>
               <Navbar />
               <UsuarioForm />
             </PrivateRoute>
@@ -112,7 +123,7 @@ function App() {
         <Route
           path="/usuarios/:id/editar"
           element={
-            <PrivateRoute>
+            <PrivateRoute roles={['Administrador', 'Gerente']}>
               <Navbar />
               <UsuarioEditForm />
             </PrivateRoute>
