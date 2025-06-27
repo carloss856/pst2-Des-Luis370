@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Hash;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
 
@@ -27,7 +28,10 @@ class UsuarioController extends Controller
             'validado_por_gerente' => 'boolean',
         ]);
 
-        $usuario = Usuario::create($request->all());
+        $data = $request->all();
+        $data['contrasena'] = Hash::make($data['contrasena']);
+
+        $usuario = Usuario::create($data);
         return response()->json($usuario, 201);
     }
 
@@ -53,7 +57,14 @@ class UsuarioController extends Controller
             'validado_por_gerente' => 'boolean',
         ]);
 
-        $usuario->update($request->all());
+        $data = $request->all();
+        if (!empty($data['contrasena'])) {
+            $data['contrasena'] = Hash::make($data['contrasena']);
+        } else {
+            unset($data['contrasena']);
+        }
+
+        $usuario->update($data);
         return response()->json($usuario);
     }
 

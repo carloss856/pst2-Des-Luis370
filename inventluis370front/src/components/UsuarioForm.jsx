@@ -21,7 +21,8 @@ export default function UsuarioForm() {
     e.preventDefault();
     try {
       await createUsuario(form);
-      navigate('/usuarios');
+      console.log('Usuario creado:', form);
+      //navigate('/usuarios');
     } catch (err) {
         if (err.response && err.response.data && err.response.data.errors) {
             setError(JSON.stringify(err.response.data.errors, null, 2));
@@ -39,7 +40,7 @@ export default function UsuarioForm() {
         <input name="telefono" placeholder="Teléfono" value={form.telefono} onChange={handleChange} />
         <label>Tipo:</label>
         <select name="tipo" value={form.tipo} onChange={handleChange} required>
-            <option value="">Seleccione un tipo</option>
+            <option value="" disabled>Seleccione un tipo</option>
             <option value="Administrador">Administrador</option>
             <option value="Técnico">Técnico</option>
             <option value="Gerente">Gerente</option>

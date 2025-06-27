@@ -9,6 +9,7 @@ export default function UsuarioEditForm() {
     email: '',
     telefono: '',
     tipo: '',
+    estado: 'Activo',
     contrasena: '',
   });
   const [error, setError] = useState('');
@@ -21,6 +22,7 @@ export default function UsuarioEditForm() {
         email: res.data.email,
         telefono: res.data.telefono,
         tipo: res.data.tipo,
+        estado: res.data.estado,
         contrasena: '',
       });
     });
@@ -33,7 +35,11 @@ export default function UsuarioEditForm() {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
-      await updateUsuario(id, form);
+      const dataToSend = { ...form };
+      if (!dataToSend.contrasena) {
+        delete dataToSend.contrasena;
+      }
+      await updateUsuario(id, dataToSend);
       navigate('/usuarios');
     } catch (err) {
       setError('Error al actualizar usuario');
@@ -46,11 +52,21 @@ export default function UsuarioEditForm() {
       <input name="nombre" placeholder="Nombre" value={form.nombre} onChange={handleChange} required />
       <input name="email" placeholder="Email" value={form.email} onChange={handleChange} required />
       <input name="telefono" placeholder="Teléfono" value={form.telefono} onChange={handleChange} />
-      <input name="tipo" placeholder="Tipo" value={form.tipo} onChange={handleChange} required />
+      <label>Tipo:</label>
+      <select name="tipo" value={form.tipo} onChange={handleChange} required>
+        <option value="" disabled>Seleccione un tipo</option>
+        <option value="Administrador">Administrador</option>
+        <option value="Técnico">Técnico</option>
+        <option value="Gerente">Gerente</option>
+        <option value="Cliente">Cliente</option>
+        <option value="Empresa">Empresa</option>
+      </select>
+      <label>Contraseña:</label>
+      <p>Dejar en blanco si no desea cambiar la contraseña</p>
       <input name="contrasena" type="password" placeholder="Nueva contraseña (opcional)" value={form.contrasena} onChange={handleChange} />
       <button type="submit">Actualizar</button>
       <button type="button" onClick={() => navigate('/usuarios')}>Volver</button>
-      {error && <div style={{color:'red'}}>{error}</div>}
+      {error && <div style={{ color: 'red' }}>{error}</div>}
     </form>
   );
 }
