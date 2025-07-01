@@ -13,14 +13,14 @@ const ServiciosList = () => {
   useEffect(() => {
     // Consultar los equipos al montar el componente
     getEquipos()
-      .then(res => setEquipos(res.data))
+      .then(res => setEquipos(res))
       .catch(() => setEquipos([]));
   }, []);
 
   useEffect(() => {
     getServicios()
       .then(res => {
-        setServicios(res.data);
+        setServicios(res);
         setLoading(false);
       })
       .catch(() => setLoading(false));

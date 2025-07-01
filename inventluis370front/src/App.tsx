@@ -1,5 +1,24 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import MenuIcon from "@mui/icons-material/Menu";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Link,
+  useLocation,
+} from "react-router-dom";
 import Login from "./pages/Login";
 import EmpresasList from "./components/EmpresasList";
 import EmpresaForm from "./components/EmpresaForm";
@@ -16,16 +35,15 @@ import ServicioEditForm from "./components/ServicioEditForm";
 import RepuestosList from "./components/RepuestosList";
 import RepuestosForm from "./components/RepuestosForm";
 import RepuestoEditForm from "./components/RepuestoEditForm";
+import Inventario from "./components/Inventario";
+import Solicitudes from "./components/SolicitudesRepuestosList";
+import SolicitudesForm from "./components/SolicitudesRepuestosForm";
+import SolicitudesEditForm from "./components/SolicitudesRepuestosEditForm";
+import Notificaciones from "./components/NotificacionesList";
+import Reportes from "./components/ReportesList";
 
 // Componentes vacíos para los demás módulos
-const Dashboard = () => {
-  const rol = localStorage.getItem("rol_usuario");
-  return <h2>Dashboard - Rol: {rol}</h2>;
-};
-const Inventario = () => <h2>Inventario</h2>;
-const Solicitudes = () => <h2>Solicitudes de Repuestos</h2>;
-const Notificaciones = () => <h2>Notificaciones</h2>;
-const Reportes = () => <h2>Reportes</h2>;
+const Dashboard = () => {};
 
 function PrivateRoute({
   children,
@@ -43,37 +61,126 @@ function PrivateRoute({
 
 function Navbar() {
   const rol = localStorage.getItem("rol_usuario");
+  const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const navLinks = [
+    { to: "/empresas", label: "Empresas" },
+    ...(rol === "Administrador" || rol === "Gerente"
+      ? [{ to: "/usuarios", label: "Usuarios" }]
+      : []),
+    { to: "/equipos", label: "Equipos" },
+    { to: "/servicios", label: "Servicios" },
+    { to: "/repuestos", label: "Repuestos" },
+    { to: "/inventario", label: "Inventario" },
+    { to: "/solicitudes-repuestos", label: "Solicitudes" },
+    { to: "/notificaciones", label: "Notificaciones" },
+    { to: "/reportes", label: "Reportes" },
+  ];
+
+  const isActive = (path: string) => location.pathname.startsWith(path);
+
   return (
-    <nav>
-      <Link to="/dashboard">Dashboard</Link> |{" "}
-      <Link to="/empresas">Empresas</Link> |{" "}
-      {(rol === "Administrador" || rol === "Gerente") && (
-        <>
-          <Link to="/usuarios">Usuarios</Link> |{" "}
-        </>
-      )}
-      <Link to="/equipos">Equipos</Link> |{" "}
-      <Link to="/servicios">Servicios</Link> |{" "}
-      <Link to="/repuestos">Repuestos</Link> |{" "}
-      <Link to="/inventario">Inventario</Link> |{" "}
-      <Link to="/solicitudes">Solicitudes</Link> |{" "}
-      <Link to="/notificaciones">Notificaciones</Link> |{" "}
-      <Link to="/reportes">Reportes</Link> |{" "}
-      <button
-        onClick={() => {
-          localStorage.removeItem("token");
-          window.location.href = "/login";
-        }}
-      >
-        Cerrar sesión
-      </button>
-    </nav>
+    <AppBar position="fixed" sx={{ bgcolor: "#424242", color: "#fff" }}>
+      <Toolbar variant="dense" sx={{ minHeight: "45px !important" }}>
+        <Typography variant="h6" sx={{ flexGrow: 0 }}>
+          <Link
+            to="/dashboard"
+            style={{ color: "#fff", textDecoration: "none" }}
+          >
+            Inventario Luis370
+          </Link>
+        </Typography>
+        {isMobile ? (
+          <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end" }}>
+            <IconButton
+              size="large"
+              edge="end"
+              color="inherit"
+              aria-label="menu"
+              onClick={handleMenu}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+              keepMounted
+            >
+              {navLinks.map((link) => (
+                <MenuItem
+                  key={link.to}
+                  component={Link}
+                  to={link.to}
+                  onClick={handleClose}
+                  selected={isActive(link.to)}
+                >
+                  {link.label}
+                </MenuItem>
+              ))}
+              <MenuItem
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  window.location.href = "/login";
+                }}
+              >
+                Cerrar sesión
+              </MenuItem>
+            </Menu>
+          </Box>
+        ) : (
+          <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+            {navLinks.map((link) => (
+              <Button
+                key={link.to}
+                color="inherit"
+                component={Link}
+                to={link.to}
+                sx={{
+                  borderBottom: isActive(link.to) ? "2px solid #fff" : "none",
+                  color: "#fff",
+                }}
+              >
+                {link.label}
+              </Button>
+            ))}
+            <Button
+              color="inherit"
+              onClick={() => {
+                localStorage.removeItem("token");
+                window.location.href = "/login";
+              }}
+            >
+              Cerrar sesión
+            </Button>
+          </Box>
+        )}
+      </Toolbar>
+    </AppBar>
   );
 }
 
-function App() {
+function AppContent() {
   return (
-    <BrowserRouter>
+    <Box
+      sx={{
+        bgcolor: "#fffde7",
+        minHeight: "100vh",
+        width: "100vw",
+        pt: "45px", // Separación para el AppBar fijo
+        overflow: "hidden",
+      }}
+    >
       <Routes>
         <Route
           path="/login"
@@ -85,7 +192,6 @@ function App() {
           path="/dashboard"
           element={
             <PrivateRoute>
-              <Navbar />
               <Dashboard />
             </PrivateRoute>
           }
@@ -94,7 +200,6 @@ function App() {
           path="/empresas"
           element={
             <PrivateRoute>
-              <Navbar />
               <EmpresasList />
             </PrivateRoute>
           }
@@ -103,7 +208,6 @@ function App() {
           path="/empresas/crear"
           element={
             <PrivateRoute>
-              <Navbar />
               <EmpresaForm />
             </PrivateRoute>
           }
@@ -112,7 +216,6 @@ function App() {
           path="/empresas/:id/editar"
           element={
             <PrivateRoute>
-              <Navbar />
               <EmpresaEditForm />
             </PrivateRoute>
           }
@@ -121,7 +224,6 @@ function App() {
           path="/usuarios"
           element={
             <PrivateRoute roles={["Administrador", "Gerente"]}>
-              <Navbar />
               <UsuariosList />
             </PrivateRoute>
           }
@@ -130,7 +232,6 @@ function App() {
           path="/usuarios/crear"
           element={
             <PrivateRoute roles={["Administrador", "Gerente"]}>
-              <Navbar />
               <UsuarioForm />
             </PrivateRoute>
           }
@@ -139,7 +240,6 @@ function App() {
           path="/usuarios/:id/editar"
           element={
             <PrivateRoute roles={["Administrador", "Gerente"]}>
-              <Navbar />
               <UsuarioEditForm />
             </PrivateRoute>
           }
@@ -148,7 +248,6 @@ function App() {
           path="/equipos"
           element={
             <PrivateRoute>
-              <Navbar />
               <EquiposList />
             </PrivateRoute>
           }
@@ -157,7 +256,6 @@ function App() {
           path="/equipos/crear"
           element={
             <PrivateRoute>
-              <Navbar />
               <EquipoForm />
             </PrivateRoute>
           }
@@ -166,7 +264,6 @@ function App() {
           path="/equipos/:id/editar"
           element={
             <PrivateRoute>
-              <Navbar />
               <EquipoEditForm />
             </PrivateRoute>
           }
@@ -175,7 +272,6 @@ function App() {
           path="/servicios"
           element={
             <PrivateRoute>
-              <Navbar />
               <ServiciosList />
             </PrivateRoute>
           }
@@ -184,7 +280,6 @@ function App() {
           path="/servicios/crear"
           element={
             <PrivateRoute>
-              <Navbar />
               <ServicioForm />
             </PrivateRoute>
           }
@@ -193,7 +288,6 @@ function App() {
           path="/servicios/:id/editar"
           element={
             <PrivateRoute>
-              <Navbar />
               <ServicioEditForm />
             </PrivateRoute>
           }
@@ -202,7 +296,6 @@ function App() {
           path="/repuestos"
           element={
             <PrivateRoute>
-              <Navbar />
               <RepuestosList />
             </PrivateRoute>
           }
@@ -211,7 +304,6 @@ function App() {
           path="/repuestos/crear"
           element={
             <PrivateRoute>
-              <Navbar />
               <RepuestosForm />
             </PrivateRoute>
           }
@@ -220,7 +312,6 @@ function App() {
           path="/repuestos/:id/editar"
           element={
             <PrivateRoute>
-              <Navbar />
               <RepuestoEditForm />
             </PrivateRoute>
           }
@@ -229,17 +320,31 @@ function App() {
           path="/inventario"
           element={
             <PrivateRoute>
-              <Navbar />
               <Inventario />
             </PrivateRoute>
           }
         />
         <Route
-          path="/solicitudes"
+          path="/solicitudes-repuestos"
           element={
             <PrivateRoute>
-              <Navbar />
               <Solicitudes />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/solicitudes-repuestos/crear"
+          element={
+            <PrivateRoute>
+              <SolicitudesForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/solicitudes-repuestos/:id/editar"
+          element={
+            <PrivateRoute>
+              <SolicitudesEditForm />
             </PrivateRoute>
           }
         />
@@ -247,7 +352,6 @@ function App() {
           path="/notificaciones"
           element={
             <PrivateRoute>
-              <Navbar />
               <Notificaciones />
             </PrivateRoute>
           }
@@ -256,13 +360,22 @@ function App() {
           path="/reportes"
           element={
             <PrivateRoute>
-              <Navbar />
               <Reportes />
             </PrivateRoute>
           }
         />
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
+    </Box>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <CssBaseline />
+      <Navbar />
+      <AppContent />
     </BrowserRouter>
   );
 }

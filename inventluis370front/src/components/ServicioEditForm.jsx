@@ -20,7 +20,7 @@ const ServicioEditForm = () => {
 
   useEffect(() => {
     getServicio(id)
-      .then(res => setForm(res.data))
+      .then(res => setForm(res))
       .catch(() => setError('Error al cargar servicio'));
   }, [id]);
 
@@ -46,7 +46,12 @@ const ServicioEditForm = () => {
       <input name="codigo_rma" value={form.codigo_rma} onChange={handleChange} placeholder="Código RMA" required />
       <input name="fecha_ingreso" type="date" value={form.fecha_ingreso} onChange={handleChange} required />
       <input name="problema_reportado" value={form.problema_reportado} onChange={handleChange} placeholder="Problema Reportado" required />
-      <input name="estado" value={form.estado} onChange={handleChange} placeholder="Estado" required />
+      <select name="estado" value={form.estado} onChange={handleChange} required>
+        <option value="" disabled>Seleccione un estado</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="En Proceso">En Proceso</option>
+        <option value="Finalizado">Finalizado</option>
+      </select>
       <input name="costo_estimado" type="number" value={form.costo_estimado} onChange={handleChange} placeholder="Costo Estimado" />
       <input name="costo_real" type="number" value={form.costo_real} onChange={handleChange} placeholder="Costo Real" />
       {(rol === 'Gerente' || rol === 'Administrador') && (

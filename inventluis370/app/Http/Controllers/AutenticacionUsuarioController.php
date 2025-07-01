@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notificacion;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use App\Models\AutenticacionUsuario;
 use Illuminate\Http\Request;
 
@@ -27,6 +30,17 @@ class AutenticacionUsuarioController extends Controller
         ]);
 
         $usuario = AutenticacionUsuario::create($request->all());
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+        $email_usuario = $user->email;
+        $this->registrarYEnviarNotificacion(
+            'Nuevo usuario autenticado',
+            'Se ha creado el usuario: ' . $usuario->codigo_usuario,
+            $email_usuario,
+            $usuario->id_servicio
+        );
         return response()->json($usuario, 201);
     }
 
@@ -50,8 +64,18 @@ class AutenticacionUsuarioController extends Controller
             'estado' => 'nullable|in:Activo,Bloqueado',
             'token_recuperacion' => 'nullable|string|max:255',
         ]);
-
         $usuario->update($request->all());
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+        $email_usuario = $user->email;
+        $this->registrarYEnviarNotificacion(
+            'Actualización de usuario con éxito',
+            'Se ha actualizado el usuario: ' . $usuario->codigo_usuario,
+            $email_usuario,
+            $usuario->id_servicio
+        );
         return response()->json($usuario);
     }
 
@@ -60,6 +84,36 @@ class AutenticacionUsuarioController extends Controller
     {
         $usuario = AutenticacionUsuario::findOrFail($id);
         $usuario->delete();
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+        $email_usuario = $user->email;
+        $this->registrarYEnviarNotificacion(
+            'Eliminación de usuario con éxito',
+            'Se ha eliminado el usuario: ' . $usuario->codigo_usuario,
+            $email_usuario,
+            $usuario->id_servicio
+        );
         return response()->json(['message' => 'Registro eliminado']);
+    }
+    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio)
+    {
+        // Registrar solo para el usuario que hizo la acción
+        Notificacion::create([
+            'id_servicio' => $id_servicio,
+            'email_destinatario' => $email_usuario,
+            'asunto' => $asunto,
+            'mensaje' => $mensaje,
+            'fecha_envio' => now(),
+            'estado_envio' => 'Enviado',
+        ]);
+
+        // Enviar correo tanto al usuario como a info@midominio.com
+        $destinatarios = [$email_usuario, 'info@midominio.com'];
+        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
+            $mail->to($destinatarios)
+                ->subject($asunto);
+        });
     }
 }

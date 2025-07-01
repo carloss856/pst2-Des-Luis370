@@ -21,8 +21,7 @@ export default function UsuarioForm() {
     e.preventDefault();
     try {
       await createUsuario(form);
-      console.log('Usuario creado:', form);
-      //navigate('/usuarios');
+      navigate('/usuarios');
     } catch (err) {
         if (err.response && err.response.data && err.response.data.errors) {
             setError(JSON.stringify(err.response.data.errors, null, 2));

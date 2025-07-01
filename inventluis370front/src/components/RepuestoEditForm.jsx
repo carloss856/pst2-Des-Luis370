@@ -10,7 +10,7 @@ export default function RepuestoEditForm() {
   const { id } = useParams();
 
   useEffect(() => {
-    getRepuesto(id).then(res => setForm(res.data));
+    getRepuesto(id).then(res => setForm(res));
   }, [id]);
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });

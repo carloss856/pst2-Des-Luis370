@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
+use App\Models\Notificacion;
+use Illuminate\Support\Facades\Mail;
 
 class UsuarioController extends Controller
 {
@@ -32,6 +34,17 @@ class UsuarioController extends Controller
         $data['contrasena'] = Hash::make($data['contrasena']);
 
         $usuario = Usuario::create($data);
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+        $email_usuario = $user->email;
+        $this->registrarYEnviarNotificacion(
+            'Usuario creado',
+            'Se ha creado el usuario: ' . $usuario->nombre . ' (' . $usuario->email . ')',
+            $email_usuario,
+            $usuario->id_servicio
+        );
         return response()->json($usuario, 201);
     }
 
@@ -65,6 +78,17 @@ class UsuarioController extends Controller
         }
 
         $usuario->update($data);
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+        $email_usuario = $user->email;
+        $this->registrarYEnviarNotificacion(
+            'Usuario actualizado',
+            'Se ha actualizado el usuario: ' . $usuario->nombre . ' (' . $usuario->email . ')',
+            $email_usuario,
+            $usuario->id_servicio
+        );
         return response()->json($usuario);
     }
 
@@ -72,7 +96,38 @@ class UsuarioController extends Controller
     public function destroy($id)
     {
         $usuario = Usuario::findOrFail($id);
+        $nombre = $usuario->nombre;
+        $email = $usuario->email;
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+        $email_usuario = $user->email;
+        $this->registrarYEnviarNotificacion(
+            'Usuario eliminado',
+            'Se ha eliminado el usuario: ' . $nombre . ' (' . $email . ')',
+            $email_usuario
+        );
         $usuario->delete();
         return response()->json(['message' => 'Usuario eliminado']);
+    }
+    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio = null)
+    {
+        // Registrar solo para el usuario que hizo la acción
+        Notificacion::create([
+            'id_servicio' => $id_servicio,
+            'email_destinatario' => $email_usuario,
+            'asunto' => $asunto,
+            'mensaje' => $mensaje,
+            'fecha_envio' => now(),
+            'estado_envio' => 'Enviado',
+        ]);
+
+        // Enviar correo tanto al usuario como a info@midominio.com
+        $destinatarios = [$email_usuario, 'info@midominio.com'];
+        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
+            $mail->to($destinatarios)
+                ->subject($asunto);
+        });
     }
 }

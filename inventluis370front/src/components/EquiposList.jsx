@@ -33,7 +33,6 @@ const EquiposList = () => {
       <table  border={1} cellPadding={5}>
         <thead>
           <tr>
-            {/* <th>ID</th> */}
             <th>Tipo de Equipo</th>
             <th>Marca</th>
             <th>Modelo</th>

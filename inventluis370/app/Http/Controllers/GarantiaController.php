@@ -26,6 +26,17 @@ class GarantiaController extends Controller
         ]);
 
         $garantia = Garantia::create($request->all());
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+        $email_usuario = $user->email;
+        $this->registrarYEnviarNotificacion(
+            'Garantía creada',
+            'Se ha creado una garantía para el servicio ID: ' . $garantia->id_servicio,
+            $email_usuario,
+            $garantia->id_servicio
+        );
         return response()->json($garantia, 201);
     }
 
@@ -50,6 +61,17 @@ class GarantiaController extends Controller
         ]);
 
         $garantia->update($request->all());
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+        $email_usuario = $user->email;
+        $this->registrarYEnviarNotificacion(
+            'Garantía actualizada',
+            'Se ha actualizado la garantía para el servicio ID: ' . $garantia->id_servicio,
+            $email_usuario,
+            $garantia->id_servicio
+        );
         return response()->json($garantia);
     }
 
@@ -58,6 +80,36 @@ class GarantiaController extends Controller
     {
         $garantia = Garantia::findOrFail($id);
         $garantia->delete();
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+        $email_usuario = $user->email;
+        $this->registrarYEnviarNotificacion(
+            'Garantía eliminada',
+            'Se ha eliminado la garantía para el servicio ID: ' . $garantia->id_servicio,
+            $email_usuario,
+            $garantia->id_servicio
+        );
         return response()->json(['message' => 'Garantía eliminada']);
+    }
+    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio)
+    {
+        // Registrar solo para el usuario que hizo la acción
+        Notificacion::create([
+            'id_servicio' => $id_servicio,
+            'email_destinatario' => $email_usuario,
+            'asunto' => $asunto,
+            'mensaje' => $mensaje,
+            'fecha_envio' => now(),
+            'estado_envio' => 'Enviado',
+        ]);
+
+        // Enviar correo tanto al usuario como a info@midominio.com
+        $destinatarios = [$email_usuario, 'info@midominio.com'];
+        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
+            $mail->to($destinatarios)
+                ->subject($asunto);
+        });
     }
 }

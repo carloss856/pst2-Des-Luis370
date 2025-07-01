@@ -10,7 +10,7 @@ export default function RepuestosList() {
     useEffect(() => {
         getRepuestos()
         .then(res => {
-            setRepuestos(res.data);
+            setRepuestos(res);
             setLoading(false);
         })
         .catch(() => setLoading(false));

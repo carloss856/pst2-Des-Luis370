@@ -7,8 +7,8 @@ export default function UsuariosList() {
 
   const cargarUsuarios = () => {
     getUsuarios()
-      .then(res => {
-        setUsuarios(res.data);
+      .then(data => {
+        setUsuarios(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));

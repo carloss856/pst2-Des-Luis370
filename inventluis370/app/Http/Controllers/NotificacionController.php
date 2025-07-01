@@ -10,7 +10,12 @@ class NotificacionController extends Controller
     // Listar todas las notificaciones
     public function index()
     {
-        $notificaciones = Notificacion::all();
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+        $email = $user->email;
+        $notificaciones = Notificacion::where('email_destinatario', $email)->get();
         return response()->json($notificaciones);
     }
 

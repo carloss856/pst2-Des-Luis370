@@ -18,11 +18,11 @@ export default function UsuarioEditForm() {
   useEffect(() => {
     getUsuario(id).then(res => {
       setForm({
-        nombre: res.data.nombre,
-        email: res.data.email,
-        telefono: res.data.telefono,
-        tipo: res.data.tipo,
-        estado: res.data.estado,
+        nombre: res.nombre,
+        email: res.email,
+        telefono: res.telefono,
+        tipo: res.tipo,
+        estado: res.estado,
         contrasena: '',
       });
     });

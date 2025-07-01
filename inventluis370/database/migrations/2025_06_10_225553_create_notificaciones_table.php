@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('notificaciones', function (Blueprint $table) {
             $table->id('id_notificacion');
-            $table->unsignedBigInteger('id_servicio');
+            $table->unsignedBigInteger('id_servicio')->nullable();
             $table->string('email_destinatario', 100);
             $table->string('asunto', 150);
             $table->text('mensaje');

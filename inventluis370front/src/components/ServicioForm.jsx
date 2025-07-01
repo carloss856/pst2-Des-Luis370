@@ -21,7 +21,7 @@ const ServicioForm = () => {
   useEffect(() => {
     // Consultar los equipos al montar el componente
     getEquipos()
-      .then(res => setEquipos(res.data))
+      .then(res => setEquipos(res))
       .catch(() => setEquipos([]));
   }, []);
 
@@ -33,7 +33,6 @@ const ServicioForm = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
-      console.log('Formulario enviado:', form);
       await createServicio(form);
       navigate('/servicios');
     } catch (err) {

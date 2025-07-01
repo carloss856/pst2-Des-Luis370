@@ -10,7 +10,6 @@ export default function Login({ onLogin }) {
     e.preventDefault();
     try {
       const res = await api.post('/login', { email, contrasena });
-      console.log(res.data);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('id_usuario', res.data.usuario.id_persona);
       localStorage.setItem('rol_usuario', res.data.usuario.tipo);
