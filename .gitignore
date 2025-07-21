@@ -20,7 +20,6 @@ vendor/
 
 # Laravel y archivos sensibles
 .env
-.env.*
 .phpunit.result.cache
 .phpunit.cache
 auth.json
