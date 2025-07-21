@@ -18,35 +18,36 @@ const Inventario = () => {
     fetchData();
   }, []);
 
-  // Función para obtener el nombre del repuesto por id
   const getNombreRepuesto = (id) => {
     const rep = repuestos.find(r => r.id_repuesto === id);
     return rep ? rep.nombre_repuesto : id;
   };
 
   return (
-    <div>
-      <h1>Inventario</h1>
-      <table border={1} cellPadding={5}>
-        <thead>
-          <tr>
-            <th>Repuesto</th>
-            <th>Cantidad Disponible</th>
-            <th>Nivel Crítico</th>
-            <th>Última Actualización</th>
-          </tr>
-        </thead>
-        <tbody>
-          {inventario.map((item) => (
-            <tr key={`${item.id_inventario}-${item.id_repuesto}`}>
-              <td>{getNombreRepuesto(item.id_repuesto)}</td>
-              <td>{item.cantidad_disponible}</td>
-              <td>{item.nivel_critico}</td>
-              <td>{item.ultima_actualizacion}</td>
+          <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
+      <h2 className="mb-4">Inventario</h2>
+      <div className="table-responsive w-100">
+                <table className="table table-bordered table-striped align-middle">
+                    <thead className="table-dark">
+                        <tr className="text-center">
+              <th>Repuesto</th>
+              <th>Cantidad Disponible</th>
+              <th>Nivel Crítico</th>
+              <th>Última Actualización</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {inventario.map((item) => (
+              <tr key={`${item.id_inventario}-${item.id_repuesto}`} className="text-center">
+                <td>{getNombreRepuesto(item.id_repuesto)}</td>
+                <td>{item.cantidad_disponible}</td>
+                <td>{item.nivel_critico}</td>
+                <td>{item.ultima_actualizacion}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

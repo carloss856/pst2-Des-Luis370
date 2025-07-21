@@ -87,12 +87,10 @@ export default function Reportes() {
     });
   };
 
-  // Devuelve true si hay al menos un seleccionado en cualquier entidad visible
   const haySeleccionados = entidades.some(
     entidad => visibles[entidad.key] && seleccion[entidad.key] && seleccion[entidad.key].length > 0
   );
 
-  // Exportar a Excel (todas las entidades seleccionadas)
   const exportarExcel = () => {
     const wb = XLSX.utils.book_new();
     entidades.forEach(entidad => {
@@ -136,7 +134,6 @@ export default function Reportes() {
     saveAs(blob, `reporte.xlsx`);
   };
 
-  // Exportar a PDF (todas las entidades seleccionadas)
   const exportarPDF = () => {
     const doc = new jsPDF();
     let y = 10;
@@ -184,103 +181,120 @@ export default function Reportes() {
   };
 
   return (
-    <div>
-      <h2>Generar Reportes</h2>
-      <div style={{ marginBottom: 20 }}>
+    <div className="container py-4">
+      <h2 className="mb-4">Generar Reportes</h2>
+      <div className="mb-3">
         {entidades.map(entidad => (
-          <label key={entidad.key} style={{ marginRight: 20, cursor: "pointer" }}>
+          <div key={entidad.key} className="form-check form-check-inline">
             <input
               type="checkbox"
+              className="form-check-input"
+              id={`check-${entidad.key}`}
               checked={!!visibles[entidad.key]}
               onChange={() => toggleVisible(entidad.key)}
-              style={{ marginRight: 5 }}
             />
-            {entidad.label}
-          </label>
+            <label className="form-check-label" htmlFor={`check-${entidad.key}`}>
+              {entidad.label}
+            </label>
+          </div>
         ))}
       </div>
       {entidades.map(entidad => (
         visibles[entidad.key] && (
-          <div key={entidad.key} style={{ marginBottom: 40 }}>
-            <h3>
-              {entidad.label}{" "}
-              <button onClick={() => cargarDatos(entidad.key)} disabled={loading[entidad.key]}>
+          <div key={entidad.key} className="mb-5">
+            <div className="d-flex align-items-center mb-2">
+              <h4 className="mb-0">{entidad.label}</h4>
+              <button
+                className="btn btn-outline-primary btn-sm ms-3"
+                onClick={() => cargarDatos(entidad.key)}
+                disabled={loading[entidad.key]}
+              >
                 {datos[entidad.key] ? "Recargar" : "Cargar"}
               </button>
-            </h3>
+            </div>
             {datos[entidad.key] && (
               <>
-                <button onClick={() => seleccionarTodos(entidad.key)}>Seleccionar todos</button>
-                <button onClick={() => deseleccionarTodos(entidad.key)} style={{ marginLeft: 8 }}>Deseleccionar todos</button>
-                <table border={1} cellPadding={5} style={{ marginTop: 10 }}>
-                  <thead>
-                    <tr>
-                      <th>Seleccionar</th>
-                      {entidad.columns.map(col => (
-                        <th key={col}>{col}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(Array.isArray(datos[entidad.key]) ? datos[entidad.key] : []).map(item => (
-                      <tr key={item[entidad.idField]}>
-                        <td>
-                          <input
-                            type="checkbox"
-                            checked={(seleccion[entidad.key] || []).includes(item[entidad.idField])}
-                            onChange={() => toggleSeleccion(entidad.key, item[entidad.idField])}
-                          />
-                        </td>
-                        {entidad.key === "equipos"
-                          ? (
-                            <>
-                              <td key="id_equipo">{item.id_equipo}</td>
-                              <td key="tipo_equipo">{item.tipo_equipo}</td>
-                              <td key="marca">{item.marca}</td>
-                              <td key="modelo">{item.modelo}</td>
-                              <td key="usuario">{getNombreUsuario(item.id_persona)}</td>
-                            </>
-                          )
-                          : entidad.key === "solicitudes"
+                <div className="mb-2">
+                  <button className="btn btn-outline-success btn-sm me-2" onClick={() => seleccionarTodos(entidad.key)}>
+                    Seleccionar todos
+                  </button>
+                  <button className="btn btn-outline-secondary btn-sm" onClick={() => deseleccionarTodos(entidad.key)}>
+                    Deseleccionar todos
+                  </button>
+                </div>
+                <div className="table-responsive">
+                  <table className="table table-bordered table-striped align-middle">
+                    <thead className="table-dark">
+                      <tr>
+                        <th>Seleccionar</th>
+                        {entidad.columns.map(col => (
+                          <th key={col}>{col}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(Array.isArray(datos[entidad.key]) ? datos[entidad.key] : []).map(item => (
+                        <tr key={item[entidad.idField]}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              checked={(seleccion[entidad.key] || []).includes(item[entidad.idField])}
+                              onChange={() => toggleSeleccion(entidad.key, item[entidad.idField])}
+                            />
+                          </td>
+                          {entidad.key === "equipos"
                             ? (
                               <>
-                                <td key="id_solicitud">{item.id_solicitud}</td>
-                                <td key="repuesto">{getNombreRepuesto(item.id_repuesto)}</td>
-                                <td key="servicio">{item.id_servicio}</td>
-                                <td key="cantidad_solicitada">{item.cantidad_solicitada}</td>
-                                <td key="usuario">{getNombreUsuario(item.id_usuario)}</td>
-                                <td key="fecha_solicitud">{item.fecha_solicitud}</td>
-                                <td key="estado_solicitud">{item.estado_solicitud}</td>
-                                <td key="comentarios">{item.comentarios}</td>
+                                <td>{item.id_equipo}</td>
+                                <td>{item.tipo_equipo}</td>
+                                <td>{item.marca}</td>
+                                <td>{item.modelo}</td>
+                                <td>{getNombreUsuario(item.id_persona)}</td>
                               </>
                             )
-                            : entidad.columns.map((col, idx) => (
-                              <td key={item[entidad.idField] + '-' + idx}>
-                                {item[col.toLowerCase().replace(/ /g, "_")]}
-                              </td>
-                            ))
-                        }
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div style={{ marginTop: 10 }}>
-                  <strong>Seleccionados: {seleccion[entidad.key]?.length || 0}</strong>
+                            : entidad.key === "solicitudes"
+                              ? (
+                                <>
+                                  <td>{item.id_solicitud}</td>
+                                  <td>{getNombreRepuesto(item.id_repuesto)}</td>
+                                  <td>{item.id_servicio}</td>
+                                  <td>{item.cantidad_solicitada}</td>
+                                  <td>{getNombreUsuario(item.id_usuario)}</td>
+                                  <td>{item.fecha_solicitud}</td>
+                                  <td>{item.estado_solicitud}</td>
+                                  <td>{item.comentarios}</td>
+                                </>
+                              )
+                              : entidad.columns.map((col, idx) => (
+                                <td key={item[entidad.idField] + '-' + idx}>
+                                  {item[col.toLowerCase().replace(/ /g, "_")]}
+                                </td>
+                              ))
+                          }
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-2">
+                  <span className="badge bg-primary">Seleccionados: {seleccion[entidad.key]?.length || 0}</span>
                 </div>
               </>
             )}
           </div>
         )
       ))}
-      <div style={{ marginTop: 30 }}>
+      <div className="mt-4">
         <button
+          className="btn btn-success me-3"
           onClick={exportarExcel}
           disabled={!haySeleccionados}
-          style={{ marginRight: 16 }}
         >
           Exportar a Excel
         </button>
         <button
+          className="btn btn-danger"
           onClick={exportarPDF}
           disabled={!haySeleccionados}
         >

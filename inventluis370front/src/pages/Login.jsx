@@ -24,27 +24,38 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label htmlFor="email">Correo</label>
-      <input
-        type="email"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        placeholder="Correo"
-        required
-        autoComplete="username"
-      />
-      <label htmlFor="contrasena">Contraseña</label>
-      <input
-        type="password"
-        value={contrasena}
-        onChange={e => setContrasena(e.target.value)}
-        placeholder="Contraseña"
-        required
-        autoComplete="current-password"
-      />
-      <button type="submit">Iniciar sesión</button>
-      {error && <div style={{ color: 'red' }}>{error}</div>}
-    </form>
+    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 350, width: "100%" }}>
+        <h2 className="text-center mb-4">Iniciar sesión</h2>
+        <div className="mb-3">
+          <label htmlFor="email" className="form-label">Correo</label>
+          <input
+            type="email"
+            id="email"
+            className="form-control"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="Correo"
+            required
+            autoComplete="username"
+          />
+        </div>
+        <div className="mb-3">
+          <label htmlFor="contrasena" className="form-label">Contraseña</label>
+          <input
+            type="password"
+            id="contrasena"
+            className="form-control"
+            value={contrasena}
+            onChange={e => setContrasena(e.target.value)}
+            placeholder="Contraseña"
+            required
+            autoComplete="current-password"
+          />
+        </div>
+        <button type="submit" className="btn btn-primary w-100 mb-2">Iniciar sesión</button>
+        {error && <div className="alert alert-danger mt-2">{error}</div>}
+      </form>
+    </div>
   );
 }

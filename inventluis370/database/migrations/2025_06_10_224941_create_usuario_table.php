@@ -2,6 +2,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 return new class extends Migration
 {
@@ -18,6 +20,17 @@ return new class extends Migration
             $table->boolean('validado_por_gerente')->default(false);
             $table->foreign('id_empresa')->references('id_empresa')->on('empresas')->onDelete('set null');
         });
+
+        // Crear usuario administrador inicial
+        DB::table('usuario')->insert([
+            'nombre' => 'Administrador',
+            'email' => 'administrador@correo.com',
+            'telefono' => null,
+            'tipo' => 'Administrador',
+            'contrasena' => Hash::make('administrador'),
+            'id_empresa' => null,
+            'validado_por_gerente' => true,
+        ]);
     }
 
     public function down(): void

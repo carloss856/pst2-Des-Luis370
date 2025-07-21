@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { getRepuestos } from "../services/repuestos";
-import { getServicios } from "../services/servicios";
-import { createSolicitud } from "../services/solicitudesRepuestos";
+import { getRepuestos } from "../../services/repuestos";
+import { getServicios } from "../../services/servicios";
+import { createSolicitud } from "../../services/solicitudesRepuestos";
 import { useNavigate } from "react-router-dom";
 
 const SolicitudesRepuestosForm = () => {
@@ -54,12 +54,12 @@ const SolicitudesRepuestosForm = () => {
     };
 
     return (
-        <div>
-            <h2>Crear Solicitud de Repuesto</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Repuesto:</label>
-                    <select name="id_repuesto" value={form.id_repuesto} onChange={handleChange} required>
+        <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+            <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 500, width: "100%" }}>
+                <h2 className="text-center mb-4">Crear Solicitud de Repuesto</h2>
+                <div className="mb-3">
+                    <label className="form-label">Repuesto</label>
+                    <select name="id_repuesto" value={form.id_repuesto} onChange={handleChange} required className="form-select">
                         <option value="" disabled>Seleccione un repuesto</option>
                         {repuestos.map((repuesto) => (
                             <option key={repuesto.id_repuesto} value={repuesto.id_repuesto}>
@@ -68,9 +68,9 @@ const SolicitudesRepuestosForm = () => {
                         ))}
                     </select>
                 </div>
-                <div>
-                    <label>Servicio Asociado:</label>
-                    <select name="id_servicio" value={form.id_servicio} onChange={handleChange} required>
+                <div className="mb-3">
+                    <label className="form-label">Servicio Asociado</label>
+                    <select name="id_servicio" value={form.id_servicio} onChange={handleChange} required className="form-select">
                         <option value="" disabled>Seleccione un servicio</option>
                         {servicios.map((servicio) => (
                             <option key={servicio.id_servicio} value={servicio.id_servicio}>
@@ -79,30 +79,30 @@ const SolicitudesRepuestosForm = () => {
                         ))}
                     </select>
                 </div>
-                <div>
-                    <label>Fecha Solicitud:</label>
-                    <input type="date" name="fecha_solicitud" value={form.fecha_solicitud} onChange={handleChange} required />
+                <div className="mb-3">
+                    <label className="form-label">Fecha Solicitud</label>
+                    <input type="date" name="fecha_solicitud" value={form.fecha_solicitud} onChange={handleChange} required className="form-control" />
                 </div>
-                <div>
-                    <label>Cantidad Solicitada:</label>
-                    <input type="number" name="cantidad_solicitada" value={form.cantidad_solicitada} onChange={handleChange} required min={1} />
+                <div className="mb-3">
+                    <label className="form-label">Cantidad Solicitada</label>
+                    <input type="number" name="cantidad_solicitada" value={form.cantidad_solicitada} onChange={handleChange} required min={1} className="form-control" />
                 </div>
-                <div>
-                    <label>Comentarios:</label>
-                    <textarea name="comentarios" value={form.comentarios} onChange={handleChange}></textarea>
-                </div>
-                <div>
-                    <label>Estado:</label>
-                    <select name="estado_solicitud" value={form.estado_solicitud} onChange={handleChange}>
+                <div className="mb-3">
+                    <label className="form-label">Estado</label>
+                    <select name="estado_solicitud" value={form.estado_solicitud} onChange={handleChange} className="form-select">
                         <option value="" disabled>Selecciona una opcion</option>
                         <option value="Pendiente">Pendiente</option>
                         <option value="Aprobada">Aprobada</option>
                         <option value="Rechazada">Rechazada</option>
                     </select>
                 </div>
-                {error && <div style={{ color: "red" }}>{error}</div>}
-                <button type="submit">Guardar Solicitud</button>
-                <button type="button" onClick={() => window.history.back()}>Volver</button>
+                <div className="mb-3">
+                    <label className="form-label">Comentarios</label>
+                    <textarea name="comentarios" value={form.comentarios} onChange={handleChange} className="form-control"></textarea>
+                </div>
+                {error && <div className="alert alert-danger">{error}</div>}
+                    <button type="submit" className="btn btn-success w-100 mb-2">Guardar Solicitud</button>
+                    <button type="button" className="btn btn-secondary w-100" onClick={() => navigate("/solicitudes-repuestos")}>Volver</button>
             </form>
         </div>
     );

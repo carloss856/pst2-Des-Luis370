@@ -20,25 +20,25 @@ import {
   useLocation,
 } from "react-router-dom";
 import Login from "./pages/Login";
-import EmpresasList from "./components/EmpresasList";
-import EmpresaForm from "./components/EmpresaForm";
-import EmpresaEditForm from "./components/EmpresaEditForm";
-import UsuariosList from "./components/UsuariosList";
-import UsuarioForm from "./components/UsuarioForm";
-import UsuarioEditForm from "./components/UsuarioEditForm";
-import EquiposList from "./components/EquiposList";
-import EquipoForm from "./components/EquipoForm";
-import EquipoEditForm from "./components/EquipoEditForm";
-import ServiciosList from "./components/ServiciosList";
-import ServicioForm from "./components/ServicioForm";
-import ServicioEditForm from "./components/ServicioEditForm";
-import RepuestosList from "./components/RepuestosList";
-import RepuestosForm from "./components/RepuestosForm";
-import RepuestoEditForm from "./components/RepuestoEditForm";
+import EmpresasList from "./components/empresas/EmpresasList";
+import EmpresaForm from "./components/empresas/EmpresaForm";
+import EmpresaEditForm from "./components/empresas/EmpresaEditForm";
+import UsuariosList from "./components/usuarios/UsuariosList";
+import UsuarioForm from "./components/usuarios/UsuarioForm";
+import UsuarioEditForm from "./components/usuarios/UsuarioEditForm";
+import EquiposList from "./components/equipos/EquiposList";
+import EquipoForm from "./components/equipos/EquipoForm";
+import EquipoEditForm from "./components/equipos/EquipoEditForm";
+import ServiciosList from "./components/servicios/ServiciosList";
+import ServicioForm from "./components/servicios/ServicioForm";
+import ServicioEditForm from "./components/servicios/ServicioEditForm";
+import RepuestosList from "./components/repuestos/RepuestosList";
+import RepuestosForm from "./components/repuestos/RepuestosForm";
+import RepuestoEditForm from "./components/repuestos/RepuestoEditForm";
 import Inventario from "./components/Inventario";
-import Solicitudes from "./components/SolicitudesRepuestosList";
-import SolicitudesForm from "./components/SolicitudesRepuestosForm";
-import SolicitudesEditForm from "./components/SolicitudesRepuestosEditForm";
+import Solicitudes from "./components/solicitudes/SolicitudesRepuestosList";
+import SolicitudesForm from "./components/solicitudes/SolicitudesRepuestosForm";
+import SolicitudesEditForm from "./components/solicitudes/SolicitudesRepuestosEditForm";
 import Notificaciones from "./components/NotificacionesList";
 import Reportes from "./components/ReportesList";
 
@@ -61,6 +61,7 @@ function PrivateRoute({
 
 function Navbar() {
   const rol = localStorage.getItem("rol_usuario");
+  const isLogged = !!localStorage.getItem("token");
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -73,18 +74,21 @@ function Navbar() {
     setAnchorEl(null);
   };
 
-  const navLinks = [
+  // Enlaces visibles para cualquier usuario autenticado
+  const commonLinks = [
     { to: "/empresas", label: "Empresas" },
-    ...(rol === "Administrador" || rol === "Gerente"
-      ? [{ to: "/usuarios", label: "Usuarios" }]
-      : []),
     { to: "/equipos", label: "Equipos" },
     { to: "/servicios", label: "Servicios" },
     { to: "/repuestos", label: "Repuestos" },
-    { to: "/inventario", label: "Inventario" },
     { to: "/solicitudes-repuestos", label: "Solicitudes" },
+  ];
+
+  // Enlaces solo para Administrador y Gerente
+  const adminLinks = [
+    { to: "/inventario", label: "Inventario" },
     { to: "/notificaciones", label: "Notificaciones" },
     { to: "/reportes", label: "Reportes" },
+    { to: "/usuarios", label: "Usuarios" },
   ];
 
   const isActive = (path: string) => location.pathname.startsWith(path);
@@ -100,71 +104,105 @@ function Navbar() {
             Inventario Luis370
           </Link>
         </Typography>
-        {isMobile ? (
-          <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end" }}>
-            <IconButton
-              size="large"
-              edge="end"
-              color="inherit"
-              aria-label="menu"
-              onClick={handleMenu}
+        {isLogged &&
+          (isMobile ? (
+            <Box
+              sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end" }}
             >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-              keepMounted
-            >
-              {navLinks.map((link) => (
+              <IconButton
+                size="large"
+                edge="end"
+                color="inherit"
+                aria-label="menu"
+                onClick={handleMenu}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+                keepMounted
+              >
+                {commonLinks.map((link) => (
+                  <MenuItem
+                    key={link.to}
+                    component={Link}
+                    to={link.to}
+                    onClick={handleClose}
+                    selected={isActive(link.to)}
+                  >
+                    {link.label}
+                  </MenuItem>
+                ))}
+                {(rol === "Administrador" || rol === "Gerente") &&
+                  adminLinks.map((link) => (
+                    <MenuItem
+                      key={link.to}
+                      component={Link}
+                      to={link.to}
+                      onClick={handleClose}
+                      selected={isActive(link.to)}
+                    >
+                      {link.label}
+                    </MenuItem>
+                  ))}
                 <MenuItem
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    window.location.href = "/login";
+                  }}
+                >
+                  Cerrar sesión
+                </MenuItem>
+              </Menu>
+            </Box>
+          ) : (
+            <Box
+              sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}
+            >
+              {commonLinks.map((link) => (
+                <Button
                   key={link.to}
+                  color="inherit"
                   component={Link}
                   to={link.to}
-                  onClick={handleClose}
-                  selected={isActive(link.to)}
+                  sx={{
+                    borderBottom: isActive(link.to) ? "2px solid #fff" : "none",
+                    color: "#fff",
+                  }}
                 >
                   {link.label}
-                </MenuItem>
+                </Button>
               ))}
-              <MenuItem
+              {(rol === "Administrador" || rol === "Gerente") &&
+                adminLinks.map((link) => (
+                  <Button
+                    key={link.to}
+                    color="inherit"
+                    component={Link}
+                    to={link.to}
+                    sx={{
+                      borderBottom: isActive(link.to)
+                        ? "2px solid #fff"
+                        : "none",
+                      color: "#fff",
+                    }}
+                  >
+                    {link.label}
+                  </Button>
+                ))}
+              <Button
+                color="inherit"
                 onClick={() => {
                   localStorage.removeItem("token");
                   window.location.href = "/login";
                 }}
               >
                 Cerrar sesión
-              </MenuItem>
-            </Menu>
-          </Box>
-        ) : (
-          <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
-            {navLinks.map((link) => (
-              <Button
-                key={link.to}
-                color="inherit"
-                component={Link}
-                to={link.to}
-                sx={{
-                  borderBottom: isActive(link.to) ? "2px solid #fff" : "none",
-                  color: "#fff",
-                }}
-              >
-                {link.label}
               </Button>
-            ))}
-            <Button
-              color="inherit"
-              onClick={() => {
-                localStorage.removeItem("token");
-                window.location.href = "/login";
-              }}
-            >
-              Cerrar sesión
-            </Button>
-          </Box>
-        )}
+            </Box>
+          ))}
       </Toolbar>
     </AppBar>
   );
@@ -178,7 +216,7 @@ function AppContent() {
         minHeight: "100vh",
         width: "100vw",
         pt: "45px", // Separación para el AppBar fijo
-        overflow: "hidden",
+        overflow: "auto",
       }}
     >
       <Routes>

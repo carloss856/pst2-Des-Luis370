@@ -1,0 +1,66 @@
+import React, { useEffect, useState } from 'react';
+import api from '../../services/api';
+
+export default function EmpresasList() {
+  const [empresas, setEmpresas] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/empresas')
+      .then(res => {
+        setEmpresas(res.data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('¿Seguro que deseas eliminar esta empresa?')) return;
+    try {
+      await api.delete(`/empresas/${id}`);
+      setEmpresas(empresas.filter(e => e.id_empresa !== id));
+    } catch (err) {
+      alert('Error al eliminar la empresa');
+    }
+  };
+
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+      Cargando...
+    </div>
+  );
+
+  return (
+    <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
+      <h2 className="mb-4">Empresas</h2>
+      <div className="table-responsive w-100">
+        <table className="table table-bordered table-striped align-middle">
+          <thead className="table-dark">
+            <tr>
+              <th className="text-center">Nombre</th>
+              <th className="text-center">Dirección</th>
+              <th className="text-center">Teléfono</th>
+              <th className="text-center">Email</th>
+              <th className="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {empresas.map(empresa => (
+              <tr key={empresa.id_empresa || empresa.id}>
+                <td className="text-center">{empresa.nombre_empresa}</td>
+                <td className="text-center">{empresa.direccion}</td>
+                <td className="text-center">{empresa.telefono}</td>
+                <td className="text-center">{empresa.email}</td>
+                <td className="text-center">
+                  <a className="btn btn-sm btn-primary me-2" href={`/empresas/${empresa.id_empresa}/editar`}>Editar</a>
+                  <button className="btn btn-sm btn-danger" onClick={() => handleDelete(empresa.id_empresa)}>Eliminar</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <a className="btn btn-success mt-3" href="/empresas/crear">Crear empresa</a>
+    </div>
+  );
+}
