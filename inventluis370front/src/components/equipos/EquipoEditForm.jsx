@@ -26,7 +26,7 @@ const EquipoEditForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     api.put(`/equipos/${id}`, form)
-      .then(() => navigate('/equipos'));
+      .then(() => navigate('/equipos', { state: { showAlert: true, alertMessage: "Equipo actualizado correctamente" } }));
   };
 
   return (

@@ -24,11 +24,11 @@ const EmpresaEditForm = () => {
                 });
             });
     }, [id]);
-
+    
     const handleSubmit = (e) => {
         e.preventDefault();
         api.put(`/empresas/${id}`, form)
-            .then(() => navigate('/empresas'));
+            .then(() => navigate('/empresas', { state: { showAlert: true, alertMessage: "Empresa actualizada correctamente" } }));
     };
 
     return (
@@ -47,8 +47,8 @@ const EmpresaEditForm = () => {
                 <div className="mb-3">
                     <input className="form-control" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="Email" />
                 </div>
-                    <button type="submit" className="btn btn-primary mb-2">Actualizar</button>
-                    <button type="button" className="btn btn-secondary" onClick={() => navigate('/empresas')}>Volver</button>
+                <button type="submit" className="btn btn-primary mb-2">Actualizar</button>
+                <button type="button" className="btn btn-secondary" onClick={() => navigate('/empresas')}>Volver</button>
             </form>
         </div>
     );

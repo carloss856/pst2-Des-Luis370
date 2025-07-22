@@ -19,10 +19,10 @@ const EquipoForm = () => {
     e.preventDefault();
     try {
       await createEquipo({ ...form, id_persona });
-      navigate('/equipos');
+      navigate('/equipos', { state: { showAlert: true, alertMessage: "Equipo creado correctamente" } });
     } catch (err) {
       if (err.response && err.response.data && err.response.data.errors) {
-        setError(JSON.stringify(err.response.data.errors, null, 2));
+        setError(Object.values(err.response.data.errors).flat().join(" "));
       } else {
         setError('Error al crear equipo');
       }

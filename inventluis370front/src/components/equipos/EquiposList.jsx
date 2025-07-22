@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
+import ModalAlert from '../ModalAlert';
+import { useLocation } from 'react-router-dom';
+import ModalConfirm from '../ModalConfirm'; // Asegúrate de tener este componente
 
 const EquiposList = () => {
+  const location = useLocation();
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [equipoAEliminar, setEquipoAEliminar] = useState(null);
+  const [alert, setAlert] = useState({ type: "", message: "" });
 
   useEffect(() => {
     api.get('/equipos')
@@ -14,14 +21,31 @@ const EquiposList = () => {
       .catch(() => setLoading(false));
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('¿Seguro que deseas eliminar este equipo?')) return;
+  useEffect(() => {
+  if (location.state && location.state.showAlert) {
+    setAlert({
+      type: "success",
+      message: location.state.alertMessage || "Equipo creado correctamente"
+    });
+    window.history.replaceState({}, document.title);
+  }
+}, [location.state]);
+
+  const handleDeleteClick = (id) => {
+    setEquipoAEliminar(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setConfirmOpen(false);
     try {
-      await api.delete(`/equipos/${id}`);
-      setEquipos(equipos.filter(e => e.id_equipo !== id));
+      await api.delete(`/equipos/${equipoAEliminar}`);
+      setEquipos(equipos.filter(e => e.id_equipo !== equipoAEliminar));
+      setAlert({ type: "success", message: "Equipo eliminado correctamente" });
     } catch (err) {
-      alert('Error al eliminar el equipo');
+      setAlert({ type: "danger", message: "Error al eliminar el equipo" });
     }
+    setEquipoAEliminar(null);
   };
 
   if (loading) return (
@@ -33,6 +57,11 @@ const EquiposList = () => {
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
       <h2 className="mb-4">Equipos</h2>
+      <ModalAlert
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ type: "", message: "" })}
+      />
       <div className="table-responsive w-100">
         <table className="table table-bordered table-striped align-middle">
           <thead className="table-dark">
@@ -51,7 +80,7 @@ const EquiposList = () => {
                 <td className="text-center">{equipo.modelo}</td>
                 <td className="text-center">
                   <a className="btn btn-sm btn-primary me-2" href={`/equipos/${equipo.id_equipo}/editar`}>Editar</a>
-                  <button className="btn btn-sm btn-danger" onClick={() => handleDelete(equipo.id_equipo)}>Eliminar</button>
+                  <button className="btn btn-sm btn-danger" onClick={() => handleDeleteClick(equipo.id_equipo)}>Eliminar</button>
                 </td>
               </tr>
             ))}
@@ -59,6 +88,17 @@ const EquiposList = () => {
         </table>
       </div>
       <a className="btn btn-success mt-3" href="/equipos/crear">Nuevo Equipo</a>
+      <ModalConfirm
+        show={confirmOpen}
+        title="Eliminar equipo"
+        onClose={() => setConfirmOpen(false)}
+      >
+        <p>¿Seguro que deseas eliminar este equipo?</p>
+        <div className="d-flex justify-content-end">
+          <button className="btn btn-secondary me-2" onClick={() => setConfirmOpen(false)}>Cancelar</button>
+          <button className="btn btn-danger" onClick={handleConfirmDelete}>Eliminar</button>
+        </div>
+      </ModalConfirm>
     </div>
   );
 };

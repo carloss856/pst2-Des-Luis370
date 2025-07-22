@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createEmpresa } from '../../services/empresas';
 import { useNavigate } from 'react-router-dom';
+import ModalAlert from '../ModalAlert';
 
 const EmpresaForm = () => {
     const [form, setForm] = useState({
@@ -9,22 +10,24 @@ const EmpresaForm = () => {
         telefono: '',
         email: '',
     });
-    const [error, setError] = useState('');
+    const [alert, setAlert] = useState({ type: "", message: "" });
     const navigate = useNavigate();
+
     const handleChange = e => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
+
     const handleSubmit = async e => {
         e.preventDefault();
         try {
             await createEmpresa(form);
-            navigate('/empresas');
+            navigate('/empresas', { state: { showAlert: true } });
         } catch (err) {
+            let msg = "Error al crear empresa";
             if (err.response && err.response.data && err.response.data.errors) {
-                setError(JSON.stringify(err.response.data.errors, null, 2));
-            } else {
-                setError('Error al crear empresa');
+                msg = Object.values(err.response.data.errors).flat().join(" ");
             }
+            setAlert({ type: "danger", message: msg });
         }
     };
 
@@ -70,9 +73,13 @@ const EmpresaForm = () => {
                     />
                 </div>
                 <button type="submit" className="btn btn-success mb-2">Guardar</button>
-                {error && <div className="alert alert-danger mt-3">{error}</div>}
                 <button type="button" className="btn btn-secondary" onClick={() => navigate('/empresas')}>Volver</button>
             </form>
+            <ModalAlert
+                type={alert.type}
+                message={alert.message}
+                onClose={() => setAlert({ type: "", message: "" })}
+            />
         </div>
     );
 };
