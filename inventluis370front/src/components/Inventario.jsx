@@ -25,7 +25,7 @@ const Inventario = () => {
 
   return (
           <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
-      <h2 className="mb-4">Inventario</h2>
+      <h2 className="mb-4 text-white">Inventario</h2>
       <div className="table-responsive w-100">
                 <table className="table table-bordered table-striped align-middle">
                     <thead className="table-dark">

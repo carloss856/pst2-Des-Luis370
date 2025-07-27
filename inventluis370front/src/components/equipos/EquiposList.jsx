@@ -56,13 +56,13 @@ const EquiposList = () => {
 
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
-      <h2 className="mb-4">Equipos</h2>
+      <h2 className="mb-4 text-white">Equipos</h2>
       <ModalAlert
         type={alert.type}
         message={alert.message}
         onClose={() => setAlert({ type: "", message: "" })}
       />
-      <div className="table-responsive w-100">
+      <div className="table-responsive">
         <table className="table table-bordered table-striped align-middle">
           <thead className="table-dark">
             <tr>

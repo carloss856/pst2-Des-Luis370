@@ -182,7 +182,7 @@ export default function Reportes() {
 
   return (
     <div className="container py-4">
-      <h2 className="mb-4">Generar Reportes</h2>
+      <h2 className="mb-4 text-white">Generar Reportes</h2>
       <div className="mb-3">
         {entidades.map(entidad => (
           <div key={entidad.key} className="form-check form-check-inline">
@@ -193,7 +193,7 @@ export default function Reportes() {
               checked={!!visibles[entidad.key]}
               onChange={() => toggleVisible(entidad.key)}
             />
-            <label className="form-check-label" htmlFor={`check-${entidad.key}`}>
+            <label className="form-check-label text-white" htmlFor={`check-${entidad.key}`}>
               {entidad.label}
             </label>
           </div>
@@ -203,7 +203,7 @@ export default function Reportes() {
         visibles[entidad.key] && (
           <div key={entidad.key} className="mb-5">
             <div className="d-flex align-items-center mb-2">
-              <h4 className="mb-0">{entidad.label}</h4>
+              <h4 className="mb-0 text-white">{entidad.label}</h4>
               <button
                 className="btn btn-outline-primary btn-sm ms-3"
                 onClick={() => cargarDatos(entidad.key)}

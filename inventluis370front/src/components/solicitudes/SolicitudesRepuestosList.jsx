@@ -54,7 +54,7 @@ const SolicitudesRepuestosList = () => {
 
     return (
         <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
-            <h2 className="mb-4">Solicitudes de Repuestos</h2>
+            <h2 className="mb-4 text-white">Solicitudes de Repuestos</h2>
             <div className="table-responsive">
                 <table className="table table-bordered table-striped align-middle">
                     <thead className="table-dark">

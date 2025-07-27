@@ -75,8 +75,8 @@ const NotificacionesList = () => {
   );
 
   return (
-    <div className="container d-flex flex-column justify-content-center align-items-center mt-5" style={{ minHeight: "90vh" }}>
-      <h2 className="mb-4">Notificaciones</h2>
+    <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
+      <h2 className="mb-4 text-white">Notificaciones</h2>
       {notificaciones.length === 0 ? (
         <div className="alert alert-info">No hay notificaciones.</div>
       ) : (
