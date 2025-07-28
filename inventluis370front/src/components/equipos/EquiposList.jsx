@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../services/api';
 import ModalAlert from '../ModalAlert';
 import { useLocation } from 'react-router-dom';
 import ModalConfirm from '../ModalConfirm'; // Asegúrate de tener este componente
+import { getEquipos, deleteEquipo } from '../../services/equipos';
 
 const EquiposList = () => {
   const location = useLocation();
@@ -13,33 +13,28 @@ const EquiposList = () => {
   const [alert, setAlert] = useState({ type: "", message: "" });
 
   useEffect(() => {
-    api.get('/equipos')
+    getEquipos()
       .then(res => {
-        setEquipos(res.data);
+        setEquipos(res);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-  if (location.state && location.state.showAlert) {
-    setAlert({
-      type: "success",
-      message: location.state.alertMessage || "Equipo creado correctamente"
-    });
-    window.history.replaceState({}, document.title);
-  }
-}, [location.state]);
-
-  const handleDeleteClick = (id) => {
-    setEquipoAEliminar(id);
-    setConfirmOpen(true);
-  };
+    if (location.state && location.state.showAlert) {
+      setAlert({
+        type: "success",
+        message: location.state.alertMessage || "Equipo creado correctamente"
+      });
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleConfirmDelete = async () => {
     setConfirmOpen(false);
     try {
-      await api.delete(`/equipos/${equipoAEliminar}`);
+      await deleteEquipo(`${equipoAEliminar}`);
       setEquipos(equipos.filter(e => e.id_equipo !== equipoAEliminar));
       setAlert({ type: "success", message: "Equipo eliminado correctamente" });
     } catch (err) {
@@ -57,11 +52,7 @@ const EquiposList = () => {
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
       <h2 className="mb-4 text-white">Equipos</h2>
-      <ModalAlert
-        type={alert.type}
-        message={alert.message}
-        onClose={() => setAlert({ type: "", message: "" })}
-      />
+      <ModalAlert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
       <div className="table-responsive">
         <table className="table table-bordered table-striped align-middle">
           <thead className="table-dark">
@@ -80,7 +71,7 @@ const EquiposList = () => {
                 <td className="text-center">{equipo.modelo}</td>
                 <td className="text-center">
                   <a className="btn btn-sm btn-primary me-2" href={`/equipos/${equipo.id_equipo}/editar`}>Editar</a>
-                  <button className="btn btn-sm btn-danger" onClick={() => handleDeleteClick(equipo.id_equipo)}>Eliminar</button>
+                  <button className="btn btn-sm btn-danger" onClick={() => { setEquipoAEliminar(equipo.id_equipo); setConfirmOpen(true); }}>Eliminar</button>
                 </td>
               </tr>
             ))}

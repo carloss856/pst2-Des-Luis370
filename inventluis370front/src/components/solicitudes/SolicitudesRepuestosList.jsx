@@ -3,6 +3,9 @@ import { getRepuestos } from "../../services/repuestos";
 import { getSolicitudes, deleteSolicitud } from "../../services/solicitudesRepuestos";
 import { getUsuarios } from "../../services/usuarios";
 import { getServicios } from "../../services/servicios";
+import ModalConfirm from "../ModalConfirm";
+import ModalAlert from "../ModalAlert";
+import { useLocation } from "react-router-dom";
 
 const SolicitudesRepuestosList = () => {
     const [solicitudes, setSolicitudes] = useState([]);
@@ -10,6 +13,10 @@ const SolicitudesRepuestosList = () => {
     const [usuarios, setUsuarios] = useState([]);
     const [servicios, setServicios] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [solicitudAEliminar, setSolicitudAEliminar] = useState(null);
+    const [alert, setAlert] = useState({ type: "", message: "" });
+    const location = useLocation();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -28,25 +35,36 @@ const SolicitudesRepuestosList = () => {
         fetchData();
     }, []);
 
-    const handleEdit = (id) => {
-        window.location.href = `/solicitudes-repuestos/${id}/editar`;
-    };
-
-    const cargarSolicitudes = () => {
+    useEffect(() => {
         getSolicitudes()
             .then(res => {
-                setSolicitudes(res.data);
+                setSolicitudes(res);
                 setLoading(false);
             })
             .catch(() => setLoading(false));
-    };
+    }, []);
 
-    const handleDelete = async (id) => {
-        if (window.confirm('¿Eliminar solicitud?')) {
-            await deleteSolicitud(id);
-            cargarSolicitudes();
-        }
-    };
+  useEffect(() => {
+    if (location.state && location.state.showAlert) {
+      setAlert({
+        type: "success",
+        message: location.state.alertMessage || "Solicitud creada correctamente"
+      });
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  const handleConfirmDelete = async () => {
+    setConfirmOpen(false);
+    try {
+      await deleteSolicitud(`${solicitudAEliminar}`);
+      setSolicitudes(solicitudes.filter(s => s.id_solicitud !== solicitudAEliminar));
+      setAlert({ type: "success", message: "Solicitud eliminada correctamente" });
+    } catch (err) {
+      setAlert({ type: "danger", message: "Error al eliminar la solicitud" });
+    }
+    setSolicitudAEliminar(null);
+  };
 
     if (loading) {
         return <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>Cargando...</div>;
@@ -55,6 +73,7 @@ const SolicitudesRepuestosList = () => {
     return (
         <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
             <h2 className="mb-4 text-white">Solicitudes de Repuestos</h2>
+            <ModalAlert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
             <div className="table-responsive">
                 <table className="table table-bordered table-striped align-middle">
                     <thead className="table-dark">
@@ -91,8 +110,8 @@ const SolicitudesRepuestosList = () => {
                                     <td>{solicitud.comentarios || "N/A"}</td>
                                     <td>{usuario ? usuario.nombre : "N/A"}</td>
                                     <td className="d-flex justify-content-between">
-                                        <button className="btn btn-sm btn-primary me-2" onClick={() => handleEdit(solicitud.id_solicitud)}>Editar</button>
-                                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(solicitud.id_solicitud)}>Eliminar</button>
+                                        <a className="btn btn-sm btn-primary me-2" href={`/solicitudes-repuestos/${solicitud.id_solicitud}/editar`}>Editar</a>
+                                        <button className="btn btn-sm btn-danger" onClick={() => { setSolicitudAEliminar(solicitud.id_solicitud); setConfirmOpen(true); }}>Eliminar</button>
                                     </td>
                                 </tr>
                             );
@@ -106,6 +125,17 @@ const SolicitudesRepuestosList = () => {
                 </table>
             </div>
             <a className="btn btn-success mt-3" href="/solicitudes-repuestos/crear">Nueva Solicitud de Repuesto</a>
+            <ModalConfirm
+                show={confirmOpen}
+                title="Eliminar Solicitud"
+                onClose={() => setConfirmOpen(false)}
+            >
+                <p>¿Estás seguro de que deseas eliminar esta solicitud?</p>
+                <div className="d-flex justify-content-end">
+                    <button className="btn btn-secondary me-2" onClick={() => setConfirmOpen(false)}>Cancelar</button>
+                    <button className="btn btn-danger" onClick={handleConfirmDelete}>Eliminar</button>
+                </div>
+            </ModalConfirm>
         </div>
     );
 };

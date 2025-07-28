@@ -2,11 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { getServicios, deleteServicio } from '../../services/servicios';
 import { getEquipos } from '../../services/equipos';
 import { useNavigate } from 'react-router-dom';
+import ModalConfirm from "../ModalConfirm";
+import ModalAlert from "../ModalAlert";
+import { useLocation } from 'react-router-dom';
 
 const ServiciosList = () => {
+  const location = useLocation();
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [equipos, setEquipos] = useState([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [servicioAEliminar, setServicioAEliminar] = useState(null);
+  const [alert, setAlert] = useState({ type: "", message: "" });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,14 +31,26 @@ const ServiciosList = () => {
       .catch(() => setLoading(false));
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('¿Seguro que deseas eliminar este servicio?')) return;
-    try {
-      await deleteServicio(id);
-      setServicios(servicios.filter(s => s.id_servicio !== id));
-    } catch (err) {
-      alert('Error al eliminar el servicio');
+  useEffect(() => {
+    if (location.state && location.state.showAlert) {
+      setAlert({
+        type: "success",
+        message: location.state.alertMessage || "Servicio creado correctamente"
+      });
+      window.history.replaceState({}, document.title);
     }
+  }, [location.state]);
+
+  const handleConfirmDelete = async () => {
+    setConfirmOpen(false);
+    try {
+      await deleteServicio(`${servicioAEliminar}`);
+      setServicios(servicios.filter(s => s.id_servicio !== servicioAEliminar));
+      setAlert({ type: "success", message: "Servicio eliminado correctamente" });
+    } catch (err) {
+      setAlert({ type: "danger", message: "Error al eliminar el servicio" });
+    }
+    setServicioAEliminar(null);
   };
 
   if (loading) return (
@@ -43,6 +62,7 @@ const ServiciosList = () => {
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
       <h2 className="mb-4 text-white">Servicios</h2>
+      <ModalAlert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
       <div className="table-responsive">
         <table className="table table-bordered table-striped align-middle">
           <thead className="table-dark">
@@ -75,7 +95,7 @@ const ServiciosList = () => {
                 <td className='text-center'>{servicio.validado_por_gerente ? 'Sí' : 'No'}</td>
                 <td className="d-flex justify-content-between">
                   <button className="btn btn-sm btn-primary me-2" onClick={() => navigate(`/servicios/${servicio.id_servicio}/editar`)}>Editar</button>
-                  <button className="btn btn-sm btn-danger" onClick={() => handleDelete(servicio.id_servicio)}>Eliminar</button>
+                  <button className="btn btn-sm btn-danger" onClick={() => { setServicioAEliminar(servicio.id_servicio); setConfirmOpen(true); }}>Eliminar</button>
                 </td>
               </tr>
             ))}
@@ -83,6 +103,17 @@ const ServiciosList = () => {
         </table>
       </div>
       <a className="btn btn-success mt-3" href="/servicios/crear">Nuevo Servicio</a>
+      <ModalConfirm
+        show={confirmOpen}
+        title="Eliminar servicio"
+        onClose={() => setConfirmOpen(false)}
+      >
+        <p>¿Seguro que deseas eliminar este servicio?</p>
+        <div className="d-flex justify-content-end">
+          <button className="btn btn-secondary me-2" onClick={() => setConfirmOpen(false)}>Cancelar</button>
+          <button className="btn btn-danger" onClick={handleConfirmDelete}>Eliminar</button>
+        </div>
+      </ModalConfirm>
     </div>
   );
 };

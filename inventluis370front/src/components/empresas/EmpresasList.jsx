@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ModalConfirm from "../ModalConfirm";
 import ModalAlert from "../ModalAlert";
 import { useLocation } from 'react-router-dom';
-import api from '../../services/api';
+import { getEmpresas, deleteEmpresa } from '../../services/empresas';
 
 export default function EmpresasList() {
   const location = useLocation();
@@ -13,15 +13,15 @@ export default function EmpresasList() {
   const [alert, setAlert] = useState({ type: "", message: "" });
 
   useEffect(() => {
-    api.get('/empresas')
+    getEmpresas()
       .then(res => {
-        setEmpresas(res.data);
+        setEmpresas(res);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (location.state && location.state.showAlert) {
       setAlert({
         type: "success",
@@ -34,7 +34,7 @@ export default function EmpresasList() {
   const handleConfirmDelete = async () => {
     setConfirmOpen(false);
     try {
-      await api.delete(`/empresas/${empresaAEliminar}`);
+      await deleteEmpresa(`${empresaAEliminar}`);
       setEmpresas(empresas.filter(e => e.id_empresa !== empresaAEliminar));
       setAlert({ type: "success", message: "Empresa eliminada correctamente" });
     } catch (err) {
@@ -66,7 +66,7 @@ export default function EmpresasList() {
           </thead>
           <tbody>
             {empresas.map(empresa => (
-              <tr key={empresa.id_empresa || empresa.id}>
+              <tr key={empresa.id_empresa}>
                 <td className="text-center">{empresa.nombre_empresa}</td>
                 <td className="text-center">{empresa.direccion}</td>
                 <td className="text-center">{empresa.telefono}</td>
