@@ -11,6 +11,7 @@ const EquiposList = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [equipoAEliminar, setEquipoAEliminar] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const idUsuario = localStorage.getItem('id_usuario');
 
   useEffect(() => {
     getEquipos()
@@ -44,34 +45,40 @@ const EquiposList = () => {
   };
 
   if (loading) return (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+    <div className="d-flex justify-content-center align-items-center h-100">
       Cargando...
     </div>
   );
 
   return (
-    <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
+    <div className="container d-flex flex-column justify-content-center align-items-center h-100">
       <h2 className="mb-4 text-white">Equipos</h2>
       <ModalAlert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
       <div className="table-responsive">
         <table className="table table-bordered table-striped align-middle">
           <thead className="table-dark">
-            <tr>
-              <th className="text-center">Tipo de Equipo</th>
-              <th className="text-center">Marca</th>
-              <th className="text-center">Modelo</th>
-              <th className="text-center">Acciones</th>
+            <tr className="text-center">
+              <th>Tipo de Equipo</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Usuario Asignado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {equipos.map(equipo => (
-              <tr key={equipo.id_equipo || equipo.id}>
-                <td className="text-center">{equipo.tipo_equipo}</td>
-                <td className="text-center">{equipo.marca}</td>
-                <td className="text-center">{equipo.modelo}</td>
-                <td className="text-center">
-                  <a className="btn btn-sm btn-primary me-2" href={`/equipos/${equipo.id_equipo}/editar`}>Editar</a>
-                  <button className="btn btn-sm btn-danger" onClick={() => { setEquipoAEliminar(equipo.id_equipo); setConfirmOpen(true); }}>Eliminar</button>
+              <tr key={equipo.id_equipo} className="text-center">
+                <td>{equipo.tipo_equipo}</td>
+                <td>{equipo.marca}</td>
+                <td>{equipo.modelo}</td>
+                <td>{equipo.propiedad?.usuario?.nombre || "Sin asignar"}</td>
+                <td>
+                  {String(equipo.id_persona) === String(idUsuario) && (
+                    <>
+                      <a className="btn btn-sm btn-primary me-2" href={`/equipos/${equipo.id_equipo}/editar`}>Editar</a>
+                      <button className="btn btn-sm btn-danger" onClick={() => { setEquipoAEliminar(equipo.id_equipo); setConfirmOpen(true); }}>Eliminar</button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}

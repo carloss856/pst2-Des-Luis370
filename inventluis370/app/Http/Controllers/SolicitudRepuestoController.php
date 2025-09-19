@@ -7,9 +7,11 @@ use App\Models\Repuesto;
 use Illuminate\Http\Request;
 use App\Models\Notificacion;
 use Illuminate\Support\Facades\Mail;
+use App\Traits\NotificacionTrait;
 
 class SolicitudRepuestoController extends Controller
 {
+    use NotificacionTrait;
     // Listar todas las solicitudes de repuestos
     public function index()
     {
@@ -74,7 +76,7 @@ class SolicitudRepuestoController extends Controller
         $request->validate([
             'id_repuesto' => 'required|exists:repuestos,id_repuesto',
             'id_servicio' => 'required|exists:servicios,id_servicio',
-            'cantidad_solicitada' => 'required|integer|min:0',
+            'cantidad_solicitada' => 'required|integer|min:1',
             'id_usuario' => 'required|exists:usuario,id_persona',
             'estado_solicitud' => 'required|in:Pendiente,Aprobada,Rechazada',
             'comentarios' => 'nullable|string',
@@ -95,7 +97,6 @@ class SolicitudRepuestoController extends Controller
         return response()->json($solicitud);
     }
 
-    // Eliminar una solicitud de repuesto
     public function destroy($id)
     {
         $solicitud = SolicitudRepuesto::findOrFail($id);
@@ -113,24 +114,5 @@ class SolicitudRepuestoController extends Controller
             $solicitud->id_servicio
         );
         return response()->json(['message' => 'Solicitud eliminada']);
-    }
-    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio)
-    {
-        // Registrar solo para el usuario que hizo la acción
-        Notificacion::create([
-            'id_servicio' => $id_servicio,
-            'email_destinatario' => $email_usuario,
-            'asunto' => $asunto,
-            'mensaje' => $mensaje,
-            'fecha_envio' => now(),
-            'estado_envio' => 'Enviado',
-        ]);
-
-        // Enviar correo tanto al usuario como a info@midominio.com
-        $destinatarios = [$email_usuario, 'info@midominio.com'];
-        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
-            $mail->to($destinatarios)
-                ->subject($asunto);
-        });
     }
 }

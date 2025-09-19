@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -28,5 +29,9 @@ class Equipo extends Model
     public function servicios(): HasMany
     {
         return $this->hasMany(Servicio::class, 'id_equipo', 'id_equipo');
+    }
+    public function propiedad()
+    {
+        return $this->hasOne(\App\Models\PropiedadEquipo::class, 'id_equipo', 'id_equipo');
     }
 }

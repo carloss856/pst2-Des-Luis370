@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Reporte extends Model
 {
+
     protected $table = 'reportes';
     protected $primaryKey = 'id_reporte';
     public $timestamps = false;

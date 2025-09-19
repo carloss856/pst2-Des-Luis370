@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,7 @@ class Repuesto extends Model
         'nombre_repuesto',
         'cantidad_disponible',
         'costo_unitario',
+        'nivel_critico',
     ];
 
     // Relación: Un repuesto tiene un inventario

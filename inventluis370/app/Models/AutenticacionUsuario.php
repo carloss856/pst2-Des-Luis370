@@ -17,5 +17,11 @@ class AutenticacionUsuario extends Model
         'intentos_fallidos',
         'estado',
         'token_recuperacion',
+        'token_recuperacion_expires_at',
+    ];
+
+    protected $hidden = [
+        'contrasena',
+        'token_recuperacion',
     ];
 }

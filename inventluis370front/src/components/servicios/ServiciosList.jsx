@@ -5,24 +5,27 @@ import { useNavigate } from 'react-router-dom';
 import ModalConfirm from "../ModalConfirm";
 import ModalAlert from "../ModalAlert";
 import { useLocation } from 'react-router-dom';
+import { getRMAs } from '../../services/rma';
 
 const ServiciosList = () => {
   const location = useLocation();
   const [servicios, setServicios] = useState([]);
+  const [rmas, setRMAs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [equipos, setEquipos] = useState([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [servicioAEliminar, setServicioAEliminar] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const userRol = localStorage.getItem("rol_usuario");
   const navigate = useNavigate();
 
   useEffect(() => {
     getEquipos()
       .then(res => setEquipos(res))
       .catch(() => setEquipos([]));
-  }, []);
-
-  useEffect(() => {
+    getRMAs()
+      .then(res => setRMAs(res))
+      .catch(() => setRMAs([]));
     getServicios()
       .then(res => {
         setServicios(res);
@@ -54,51 +57,67 @@ const ServiciosList = () => {
   };
 
   if (loading) return (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+    <div className="d-flex justify-content-center align-items-center h-100">
       Cargando...
     </div>
   );
 
+
   return (
-    <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
+    <div className="container d-flex flex-column justify-content-center align-items-center h-100 text-">
       <h2 className="mb-4 text-white">Servicios</h2>
       <ModalAlert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
       <div className="table-responsive">
-        <table className="table table-bordered table-striped align-middle">
+        <table className="table table-bordered table-striped align-middle small">
           <thead className="table-dark">
             <tr className="text-center">
-              <th className='text-nowrap'>Información Equipo</th>
+              <th>Información Equipo</th>
               <th>Código RMA</th>
-              <th className='text-nowrap'>Fecha Ingreso</th>
-              <th className='text-nowrap'>Problema Reportado</th>
+              <th>Fecha Ingreso</th>
+              <th>Problema Reportado</th>
               <th>Estado</th>
-              <th className='text-nowrap'>Costo Estimado</th>
-              <th>Costo Real</th>
-              <th className='text-nowrap'>Validado por Gerente</th>
+              <th>Costo</th>
+              <th>Validado</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {servicios.map(servicio => (
-              <tr key={servicio.id_servicio}>
-                <td className="text-nowrap text-center">
-                  {equipos.find(eq => eq.id_equipo === servicio.id_equipo)?.tipo_equipo} -
-                  {equipos.find(eq => eq.id_equipo === servicio.id_equipo)?.marca} -
-                  {equipos.find(eq => eq.id_equipo === servicio.id_equipo)?.modelo || 'Desconocido'}
-                </td>
-                <td className='text-center'>{servicio.codigo_rma}</td>
-                <td className='text-center'>{servicio.fecha_ingreso}</td>
-                <td className='text-center'>{servicio.problema_reportado}</td>
-                <td className='text-center'>{servicio.estado}</td>
-                <td className='text-center'>{servicio.costo_estimado}</td>
-                <td className='text-center'>{servicio.costo_real}</td>
-                <td className='text-center'>{servicio.validado_por_gerente ? 'Sí' : 'No'}</td>
-                <td className="d-flex justify-content-between">
-                  <button className="btn btn-sm btn-primary me-2" onClick={() => navigate(`/servicios/${servicio.id_servicio}/editar`)}>Editar</button>
-                  <button className="btn btn-sm btn-danger" onClick={() => { setServicioAEliminar(servicio.id_servicio); setConfirmOpen(true); }}>Eliminar</button>
-                </td>
-              </tr>
-            ))}
+            {servicios.map((servicio) => {
+              const equipoTipo = equipos.find(eq => eq.id_equipo === servicio.id_equipo)?.tipo_equipo;
+              const equipoMarca = equipos.find(eq => eq.id_equipo === servicio.id_equipo)?.marca;
+              const equipoModelo = equipos.find(eq => eq.id_equipo === servicio.id_equipo)?.modelo || 'Desconocido';
+
+              return (
+                <tr key={servicio.id_servicio} className="text-center">
+                  <td>{equipoTipo + " - " + equipoMarca + " - " + equipoModelo}</td>
+                  <td>{servicio.codigo_rma}</td>
+                  <td>{servicio.fecha_ingreso}</td>
+                  <td>{servicio.problema_reportado}</td>
+                  <td>{servicio.estado}</td>
+                  <td>{servicio.costo_real}</td>
+                  <td>{servicio.validado_por_gerente ? 'Sí' : 'No'}</td>
+                  <td className="bg-white text-center" style={{ minWidth: "120px" }}>
+                    <div className="d-flex flex-row justify-content-center align-items-center gap-2">
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => navigate(`/servicios/${servicio.id_servicio}/editar`)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => {
+                          setServicioAEliminar(servicio.id_servicio);
+                          setConfirmOpen(true);
+                        }}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

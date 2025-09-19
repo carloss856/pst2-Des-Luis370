@@ -6,9 +6,12 @@ use App\Models\Servicio;
 use Illuminate\Http\Request;
 use App\Models\Notificacion;
 use Illuminate\Support\Facades\Mail;
+use App\Traits\NotificacionTrait;
+use Carbon\Carbon;
 
 class ServicioController extends Controller
 {
+    use NotificacionTrait;
     // Listar todos los servicios
     public function index()
     {
@@ -21,7 +24,7 @@ class ServicioController extends Controller
     {
         $request->validate([
             'id_equipo' => 'required|exists:equipos,id_equipo',
-            'codigo_rma' => 'required|string|max:20|unique:servicios,codigo_rma',
+            'codigo_rma' => 'required|string|max:20',
             'fecha_ingreso' => 'required|date',
             'problema_reportado' => 'required|string',
             'estado' => 'required|in:Pendiente,En proceso,Finalizado',
@@ -31,6 +34,17 @@ class ServicioController extends Controller
         ]);
 
         $servicio = Servicio::create($request->all());
+
+        $fechaInicio = Carbon::parse($servicio->fecha_ingreso);
+        $fechaFin = $fechaInicio->copy()->addDays(90);
+
+        $garantia = \App\Models\Garantia::create([
+            'id_servicio' => $servicio->id_servicio,
+            'fecha_inicio' => $fechaInicio,
+            'fecha_fin' => $fechaFin,
+            'observaciones' => null,
+            'validado_por_gerente' => false,
+        ]);
         $user = auth()->user();
         if (!$user) {
             return response()->json(['error' => 'No autenticado'], 401);
@@ -42,7 +56,12 @@ class ServicioController extends Controller
             $email_usuario,
             $servicio->id_servicio
         );
-        return response()->json($servicio, 201);
+        return response()->json([
+            'servicio' => $servicio,
+            'garantia' => $garantia,
+            'id_servicio' => $servicio->id_servicio,
+            'fecha_creacion' => $servicio->fecha_ingreso,
+        ], 201);
     }
 
     // Mostrar un servicio específico
@@ -59,7 +78,7 @@ class ServicioController extends Controller
 
         $request->validate([
             'id_equipo' => 'required|exists:equipos,id_equipo',
-            'codigo_rma' => 'required|string|max:20|unique:servicios,codigo_rma,' . $id . ',id_servicio',
+            'codigo_rma' => 'required|string|max:20',
             'fecha_ingreso' => 'required|date',
             'problema_reportado' => 'required|string',
             'estado' => 'required|in:Pendiente,En proceso,Finalizado',
@@ -100,24 +119,5 @@ class ServicioController extends Controller
         );
         $servicio->delete();
         return response()->json(['message' => 'Servicio eliminado']);
-    }
-    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio)
-    {
-        // Registrar solo para el usuario que hizo la acción
-        Notificacion::create([
-            'id_servicio' => $id_servicio,
-            'email_destinatario' => $email_usuario,
-            'asunto' => $asunto,
-            'mensaje' => $mensaje,
-            'fecha_envio' => now(),
-            'estado_envio' => 'Enviado',
-        ]);
-
-        // Enviar correo tanto al usuario como a info@midominio.com
-        $destinatarios = [$email_usuario, 'info@midominio.com'];
-        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
-            $mail->to($destinatarios)
-                ->subject($asunto);
-        });
     }
 }

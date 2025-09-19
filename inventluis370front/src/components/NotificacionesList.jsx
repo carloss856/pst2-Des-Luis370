@@ -75,15 +75,15 @@ const NotificacionesList = () => {
   );
 
   return (
-    <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
-      <h2 className="mb-4 text-white">Notificaciones</h2>
+    <div className="container d-flex flex-column justify-content-center align-items-center h-100">
+      <h2 className="mb-2 text-white">Notificaciones</h2>
       {notificaciones.length === 0 ? (
         <div className="alert alert-info">No hay notificaciones.</div>
       ) : (
-        <div className="table-responsive">
-          <table className="table table-bordered table-striped align-middle">
+        <div className="table-responsive mb-3 h-100" style={{ maxHeight: "75vh", overflowY: "auto" }}>
+          <table className="table table-bordered table-striped align-middle bg-white h-100">
             <thead className="table-dark">
-              <tr className="text-center text-nowrap">
+              <tr className="text-center">
                 {/* <th>ID</th>
                 <th>ID Servicio</th> */}
                 <th>Email Destinatario</th>
@@ -95,7 +95,7 @@ const NotificacionesList = () => {
             </thead>
             <tbody>
               {paginated.map((n) => (
-                <tr key={n.id_notificacion} className="text-center text-nowrap">
+                <tr key={n.id_notificacion} className="text-center">
                   {/* <td>{n.id_notificacion}</td>
                   <td>{n.id_servicio}</td> */}
                   <td>{n.email_destinatario}</td>
@@ -109,7 +109,7 @@ const NotificacionesList = () => {
           </table>
         </div>
       )}
-      <div className="d-flex justify-content-between align-items-center mb-2" style={{ maxWidth: "1000px", margin: "0 auto" }}>
+      <div className="d-flex justify-content-between align-items-center mb-2">
         <div className="me-5">
           <label className="me-2">Mostrar:</label>
           <select className="form-select d-inline-block w-auto" value={perPage} onChange={e => { setPerPage(Number(e.target.value)); setPage(1); }}>

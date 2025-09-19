@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getUsuario, updateUsuario } from '../../services/usuarios';
+import { getEmpresas } from '../../services/empresas';
 import { useNavigate, useParams } from 'react-router-dom';
+
 
 export default function UsuarioEditForm() {
   const { id } = useParams();
@@ -11,11 +13,15 @@ export default function UsuarioEditForm() {
     tipo: '',
     estado: 'Activo',
     contrasena: '',
+    id_empresa: '',
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [empresas, setEmpresas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    getEmpresas().then(data => setEmpresas(data));
     getUsuario(id).then(res => {
       setForm({
         nombre: res.nombre,
@@ -24,12 +30,27 @@ export default function UsuarioEditForm() {
         tipo: res.tipo,
         estado: res.estado,
         contrasena: '',
+        id_empresa: res.id_empresa,
       });
     });
+    setLoading(false);
   }, [id]);
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    // Si cambia el tipo y NO es "Empresa", resetea id_empresa
+    if (name === "tipo") {
+      setForm(prev => ({
+        ...prev,
+        tipo: value,
+        id_empresa: value === "Empresa" && value === "Cliente" ? prev.id_empresa : ""
+      }));
+    } else {
+      setForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async e => {
@@ -45,6 +66,12 @@ export default function UsuarioEditForm() {
       setError('Error al actualizar usuario');
     }
   };
+
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center h-100">
+      Cargando...
+    </div>
+  );
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
@@ -62,25 +89,59 @@ export default function UsuarioEditForm() {
           <label className="form-label">Teléfono</label>
           <input name="telefono" className="form-control" placeholder="Teléfono" value={form.telefono} onChange={handleChange} />
         </div>
-        <div className="mb-3">
-          <label className="form-label">Tipo</label>
-          <select name="tipo" className="form-select" value={form.tipo} onChange={handleChange} required>
-            <option value="" disabled>Seleccione un tipo</option>
-            <option value="Administrador">Administrador</option>
-            <option value="Técnico">Técnico</option>
-            <option value="Gerente">Gerente</option>
-            <option value="Cliente">Cliente</option>
-            <option value="Empresa">Empresa</option>
-          </select>
-        </div>
+        {form.tipo === "Cliente" ? (
+          <div className="mb-3">
+            <input type="text" className='form-control disabled' placeholder='Cliente' disabled />
+            <div className="mt-3">
+              <label className="form-label">Empresa</label>
+              <select name="id_empresa" className="form-select" value={form.id_empresa || ""} onChange={handleChange} required>
+                <option value="" disabled>Seleccione una empresa</option>
+                {empresas.map(empresa => (
+                  <option key={empresa.id_empresa} value={empresa.id_empresa}>{empresa.nombre_empresa}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-3">
+            <label className="form-label">Tipo</label>
+            <select name="tipo" className="form-select" value={form.tipo} onChange={handleChange} required>
+              <option value="" disabled>Seleccione un tipo</option>
+              <option value="Administrador">Administrador</option>
+              <option value="Técnico">Técnico</option>
+              <option value="Gerente">Gerente</option>
+              <option value="Empresa">Empresa</option>
+              <option value="Cliente">Cliente</option>
+            </select>
+          </div>
+        )}
+        {form.tipo === "Empresa" && (
+          <div className="mb-3">
+            <label className="form-label">Empresa</label>
+            <select
+              name="id_empresa"
+              className="form-select"
+              value={form.id_empresa || ""}
+              onChange={handleChange}
+              required
+            >
+              <option value="" disabled>Seleccione una empresa</option>
+              {empresas.map(empresa => (
+                <option key={empresa.id_empresa} value={empresa.id_empresa}>
+                  {empresa.nombre_empresa}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="mb-3">
           <label className="form-label">Contraseña</label>
           <input name="contrasena" type="password" className="form-control" placeholder="Nueva contraseña (opcional)" value={form.contrasena} onChange={handleChange} />
           <small className="form-text text-muted">Dejar en blanco si no desea cambiar la contraseña</small>
         </div>
-          <button type="submit" className="btn btn-primary w-100 mb-2">Actualizar</button>
-          <button type="button" className="btn btn-secondary w-100" onClick={() => navigate('/usuarios')}>Volver</button>
-        
+        <button type="submit" className="btn btn-primary w-100 mb-2">Actualizar</button>
+        <button type="button" className="btn btn-secondary w-100" onClick={() => navigate('/usuarios')}>Volver</button>
+
         {error && <div className="alert alert-danger mt-3">{error}</div>}
       </form>
     </div>

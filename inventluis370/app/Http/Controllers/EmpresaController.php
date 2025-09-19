@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Notificacion;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
-
 use App\Models\Empresa;
 use Illuminate\Http\Request;
+use App\Traits\NotificacionTrait;
 
 class EmpresaController extends Controller
 {
+    use NotificacionTrait;
     // Listar todas las empresas
     public function index()
     {
@@ -112,29 +113,5 @@ class EmpresaController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al eliminar empresa', 'detalle' => $e->getMessage()], 500);
         }
-    }
-
-    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio = null)
-    {
-        $data = [
-            'email_destinatario' => $email_usuario,
-            'asunto' => $asunto,
-            'mensaje' => $mensaje,
-            'fecha_envio' => now(),
-            'estado_envio' => 'Enviado',
-        ];
-        if ($id_servicio) {
-            $data['id_servicio'] = $id_servicio;
-        }
-
-        $notificacion = Notificacion::create($data);
-
-        $destinatarios = [$email_usuario, 'info@midominio.com'];
-        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
-            $mail->to($destinatarios)
-                ->subject($asunto);
-        });
-
-        return $notificacion;
     }
 }

@@ -9,14 +9,15 @@ const SolicitudesRepuestosForm = () => {
     const [servicios, setServicios] = useState([]);
     const user = localStorage.getItem("id_usuario");
     const [error, setError] = useState(null);
+    const [cantidadDisponible, setCantidadDisponible] = useState(null);
     const navigate = useNavigate();
 
     const [form, setForm] = useState({
         id_repuesto: "",
         id_servicio: "",
-        fecha_solicitud: "",
+        fecha_solicitud: new Date().toISOString().split("T")[0],
         cantidad_solicitada: "",
-        estado_solicitud: "",
+        estado_solicitud: "Pendiente",
         comentarios: "",
         id_usuario: user,
     });
@@ -26,8 +27,8 @@ const SolicitudesRepuestosForm = () => {
             try {
                 const repuestosData = await getRepuestos();
                 const serviciosData = await getServicios();
-                setRepuestos(Array.isArray(repuestosData) ? repuestosData : repuestosData.data || []);
-                setServicios(Array.isArray(serviciosData) ? serviciosData : serviciosData.data || []);
+                setRepuestos(repuestosData);
+                setServicios(serviciosData);
             } catch (err) {
                 setError("Error al cargar datos");
             }
@@ -36,8 +37,24 @@ const SolicitudesRepuestosForm = () => {
     }, []);
 
     const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });
+
+        if (name === "id_repuesto") {
+            setForm(f => ({ ...f, cantidad_solicitada: "" }));
+            const repuestoSel = repuestos.find(r => String(r.id_repuesto) === String(value));
+            setCantidadDisponible(repuestoSel ? repuestoSel.cantidad_disponible : null);
+        }
+        if (name === "cantidad_solicitada" && form.id_repuesto) {
+            const repuestoSel = repuestos.find(r => String(r.id_repuesto) === String(form.id_repuesto));
+            setCantidadDisponible(repuestoSel ? repuestoSel.cantidad_disponible : null);
+        }
     };
+
+    const excedeCantidad =
+        form.cantidad_solicitada &&
+        cantidadDisponible !== null &&
+        Number(form.cantidad_solicitada) > Number(cantidadDisponible);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -67,6 +84,28 @@ const SolicitudesRepuestosForm = () => {
                             </option>
                         ))}
                     </select>
+                    {cantidadDisponible !== null && (
+                        <span className=" text-small text-lighter mt-3 d-block">
+                            cantidad disponible: {cantidadDisponible}
+                        </span>
+                    )}
+                </div>
+                <div className="mb-3">
+                    <label className="form-label">Cantidad Solicitada</label>
+                    <input
+                        type="number"
+                        name="cantidad_solicitada"
+                        value={form.cantidad_solicitada}
+                        onChange={handleChange}
+                        required
+                        min={1}
+                        className="form-control"
+                    />
+                    {excedeCantidad && (
+                        <div className="text-danger text-small text-lighter mt-3 d-block">
+                            La cantidad solicitada excede la cantidad disponible.
+                        </div>
+                    )}
                 </div>
                 <div className="mb-3">
                     <label className="form-label">Servicio Asociado</label>
@@ -80,29 +119,22 @@ const SolicitudesRepuestosForm = () => {
                     </select>
                 </div>
                 <div className="mb-3">
-                    <label className="form-label">Fecha Solicitud</label>
-                    <input type="date" name="fecha_solicitud" value={form.fecha_solicitud} onChange={handleChange} required className="form-control" />
-                </div>
-                <div className="mb-3">
-                    <label className="form-label">Cantidad Solicitada</label>
-                    <input type="number" name="cantidad_solicitada" value={form.cantidad_solicitada} onChange={handleChange} required min={1} className="form-control" />
-                </div>
-                <div className="mb-3">
                     <label className="form-label">Estado</label>
-                    <select name="estado_solicitud" value={form.estado_solicitud} onChange={handleChange} className="form-select">
+                    <input type="text" name="estado_solicitud" value={form.estado_solicitud} onChange={handleChange} className="form-control disabled" disabled />
+                    {/* <select name="estado_solicitud" value={form.estado_solicitud} onChange={handleChange} className="form-select">
                         <option value="" disabled>Selecciona una opcion</option>
                         <option value="Pendiente">Pendiente</option>
                         <option value="Aprobada">Aprobada</option>
                         <option value="Rechazada">Rechazada</option>
-                    </select>
+                    </select> */}
                 </div>
                 <div className="mb-3">
                     <label className="form-label">Comentarios</label>
                     <textarea name="comentarios" value={form.comentarios} onChange={handleChange} className="form-control"></textarea>
                 </div>
-                {error && <div className="alert alert-danger">{error}</div>}
-                    <button type="submit" className="btn btn-success w-100 mb-2">Guardar Solicitud</button>
-                    <button type="button" className="btn btn-secondary w-100" onClick={() => navigate("/solicitudes-repuestos")}>Volver</button>
+                <button type="submit" className="btn btn-success w-100 mb-2" disabled={excedeCantidad} > Guardar Solicitud </button>
+                <button type="button" className="btn btn-secondary w-100" onClick={() => navigate("/solicitudes-repuestos")}>Volver</button>
+                {error && <div className="alert alert-danger mt-3">{error}</div>}
             </form>
         </div>
     );

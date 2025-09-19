@@ -44,13 +44,13 @@ export default function UsuariosList() {
   };
 
   if (loading) return (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+    <div className="d-flex justify-content-center align-items-center h-100">
       Cargando...
     </div>
   );
 
   return (
-    <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
+    <div className="container d-flex flex-column justify-content-center align-items-center h-100">
       <h2 className="mb-4 text-white">Usuarios</h2>
       <ModalAlert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
       <div className="table-responsive">

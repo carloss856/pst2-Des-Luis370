@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -7,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Usuario extends Authenticatable
 {
@@ -23,6 +25,13 @@ class Usuario extends Authenticatable
         'contrasena',
         'id_empresa',
         'validado_por_gerente',
+        'recibir_notificaciones',
+        'tipos_notificacion',
+    ];
+
+    protected $casts = [
+        'tipos_notificacion' => 'array',
+        'recibir_notificaciones' => 'boolean',
     ];
 
     // Relación: Un usuario pertenece a una empresa
@@ -35,5 +44,11 @@ class Usuario extends Authenticatable
     public function equipos(): HasMany
     {
         return $this->hasMany(Equipo::class, 'id_persona', 'id_persona');
+    }
+
+    // Relacion: un usuario puede tener un RMA
+    public function rma(): HasOne
+    {
+        return $this->hasOne(Rma::class, 'id_persona', 'id_persona');
     }
 }

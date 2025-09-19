@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Hash;
-use App\Models\Usuario;
-use Illuminate\Http\Request;
+use App\Models\Rma;
 use App\Models\Notificacion;
+use App\Models\Usuario;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use App\Traits\NotificacionTrait;
 
 class UsuarioController extends Controller
 {
+    use NotificacionTrait;
     // Listar todos los usuarios
     public function index()
     {
@@ -38,6 +42,19 @@ class UsuarioController extends Controller
         if (!$user) {
             return response()->json(['error' => 'No autenticado'], 401);
         }
+
+        // se crea el RMA
+        if ($usuario->tipo === 'Cliente') {
+            $codigo = $this->generarCodigoRmaUnico();
+            Rma::create([
+                'rma' => $codigo,
+                'id_persona' => $usuario->id_persona,
+                'fecha_creacion' => now(),
+            ]);
+            // opcional: adjuntar al retorno
+            $usuario->codigo_rma_generado = $codigo;
+        }
+
         $email_usuario = $user->email;
         $this->registrarYEnviarNotificacion(
             'Usuario creado',
@@ -106,28 +123,42 @@ class UsuarioController extends Controller
         $this->registrarYEnviarNotificacion(
             'Usuario eliminado',
             'Se ha eliminado el usuario: ' . $nombre . ' (' . $email . ')',
-            $email_usuario
+            $email_usuario,
+            $usuario->id_servicio
         );
         $usuario->delete();
         return response()->json(['message' => 'Usuario eliminado']);
     }
-    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio = null)
-    {
-        // Registrar solo para el usuario que hizo la acción
-        Notificacion::create([
-            'id_servicio' => $id_servicio,
-            'email_destinatario' => $email_usuario,
-            'asunto' => $asunto,
-            'mensaje' => $mensaje,
-            'fecha_envio' => now(),
-            'estado_envio' => 'Enviado',
-        ]);
 
-        // Enviar correo tanto al usuario como a info@midominio.com
-        $destinatarios = [$email_usuario, 'info@midominio.com'];
-        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
-            $mail->to($destinatarios)
-                ->subject($asunto);
-        });
+    private function generarCodigoRmaUnico(): string
+    {
+        do {
+            $codigo = 'RMA-' . Str::upper(Str::random(8));
+        } while (Rma::where('rma', $codigo)->exists());
+        return $codigo;
+    }
+
+    public function getNotificacionesConfig($id)
+    {
+        $usuario = Usuario::findOrFail($id);
+        return response()->json([
+            'recibir_notificaciones' => $usuario->recibir_notificaciones,
+            'tipos_notificacion' => $usuario->tipos_notificacion ? json_decode($usuario->tipos_notificacion, true) : [],
+        ]);
+    }
+
+    public function setNotificacionesConfig(Request $request, $id)
+    {
+        $usuario = Usuario::findOrFail($id);
+        $request->validate([
+            'recibir_notificaciones' => 'required|boolean',
+            'tipos_notificacion' => 'nullable|array',
+        ]);
+        $usuario->recibir_notificaciones = $request->recibir_notificaciones;
+        $usuario->tipos_notificacion = $request->has('tipos_notificacion')
+            ? json_encode($request->tipos_notificacion)
+            : null;
+        $usuario->save();
+        return response()->json(['message' => 'Configuración actualizada']);
     }
 }

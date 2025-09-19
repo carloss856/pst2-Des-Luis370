@@ -50,26 +50,28 @@ export default function RepuestosList() {
     );
 
     return (
-        <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
+        <div className="container d-flex flex-column justify-content-center align-items-center h-100">
             <h2 className="mb-4 text-white">Repuestos</h2>
             <ModalAlert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
             <div className="table-responsive">
                 <table className="table table-bordered table-striped align-middle">
                     <thead className="table-dark">
-                        <tr>
-                            <th className="text-center">Nombre</th>
-                            <th className="text-center">Cantidad</th>
-                            <th className="text-center">Costo</th>
-                            <th className="text-center">Acciones</th>
+                        <tr className="text-center">
+                            <th>Nombre</th>
+                            <th>Cantidad</th>
+                            <th>Costo</th>
+                            <th>Nivel critico</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {repuestos.map(repuesto => (
-                            <tr key={repuesto.id_repuesto}>
-                                <td className="text-center">{repuesto.nombre_repuesto}</td>
-                                <td className="text-center">{repuesto.cantidad_disponible}</td>
-                                <td className="text-center">{repuesto.costo_unitario}</td>
-                                <td className="text-center">
+                            <tr key={repuesto.id_repuesto} className="text-center">
+                                <td>{repuesto.nombre_repuesto}</td>
+                                <td>{repuesto.cantidad_disponible}</td>
+                                <td>{repuesto.costo_unitario}</td>
+                                <td>{repuesto.nivel_critico}</td>
+                                <td>
                                     <a className="btn btn-sm btn-primary me-2" href={`/repuestos/${repuesto.id_repuesto}/editar`}>Editar</a>
                                     <button className="btn btn-sm btn-danger" onClick={() => { setRepuestoAEliminar(repuesto.id_repuesto); setConfirmOpen(true); }}>Eliminar</button>
                                 </td>

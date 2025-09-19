@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Notificacion;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
+use App\Traits\NotificacionTrait;
 
 class AuthController extends Controller
 {
+    use NotificacionTrait;
     // Registro de usuario
     public function register(Request $request)
     {
@@ -76,24 +78,5 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Sesión cerrada']);
-    }
-    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio)
-    {
-        // Registrar solo para el usuario que hizo login
-        Notificacion::create([
-            'id_servicio' => $id_servicio,
-            'email_destinatario' => $email_usuario,
-            'asunto' => $asunto,
-            'mensaje' => $mensaje,
-            'fecha_envio' => now(),
-            'estado_envio' => 'Enviado',
-        ]);
-
-        // Enviar correo
-        $destinatarios = [$email_usuario, 'info@midominio.com'];
-        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
-            $mail->to($destinatarios)
-                ->subject($asunto);
-        });
     }
 }

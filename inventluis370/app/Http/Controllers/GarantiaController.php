@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Garantia;
 use Illuminate\Http\Request;
+use App\Traits\NotificacionTrait;
 
 class GarantiaController extends Controller
 {
+    use NotificacionTrait;
     // Listar todas las garantías
     public function index()
     {
@@ -43,7 +45,10 @@ class GarantiaController extends Controller
     // Mostrar una garantía específica
     public function show($id)
     {
-        $garantia = Garantia::findOrFail($id);
+        $garantia = Garantia::find($id);
+        if (!$garantia) {
+            return response()->json(['message' => 'No encontrada'], 404);
+        }
         return response()->json($garantia);
     }
 
@@ -92,24 +97,5 @@ class GarantiaController extends Controller
             $garantia->id_servicio
         );
         return response()->json(['message' => 'Garantía eliminada']);
-    }
-    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio)
-    {
-        // Registrar solo para el usuario que hizo la acción
-        Notificacion::create([
-            'id_servicio' => $id_servicio,
-            'email_destinatario' => $email_usuario,
-            'asunto' => $asunto,
-            'mensaje' => $mensaje,
-            'fecha_envio' => now(),
-            'estado_envio' => 'Enviado',
-        ]);
-
-        // Enviar correo tanto al usuario como a info@midominio.com
-        $destinatarios = [$email_usuario, 'info@midominio.com'];
-        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
-            $mail->to($destinatarios)
-                ->subject($asunto);
-        });
     }
 }

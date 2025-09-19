@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getRepuesto, updateRepuesto } from '../../services/repuestos';
 
 export default function RepuestoEditForm() {
-  const [form, setForm] = useState({ nombre_repuesto: '', cantidad_disponible: 0, costo_unitario: 0 });
+  const [form, setForm] = useState({ nombre_repuesto: '', costo_unitario: 0 });
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { id } = useParams();
@@ -40,11 +40,24 @@ export default function RepuestoEditForm() {
         </div>
         <div className="mb-3">
           <input
+            disabled
             name="cantidad_disponible"
             type="number"
             className="form-control"
             placeholder="Cantidad"
             value={form.cantidad_disponible}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="mb-3">
+
+          <input
+            name="nivel_critico"
+            type="number"
+            className="form-control"
+            placeholder="Nivel Crítico"
+            value={form.nivel_critico}
             onChange={handleChange}
             required
           />

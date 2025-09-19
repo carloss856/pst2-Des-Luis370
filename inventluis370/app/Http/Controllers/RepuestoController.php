@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\Inventario;
 use App\Models\Repuesto;
 use Illuminate\Http\Request;
+use App\Traits\NotificacionTrait;
 
 class RepuestoController extends Controller
 {
+    use NotificacionTrait;
     // Listar todos los repuestos
     public function index()
     {
@@ -24,6 +26,7 @@ class RepuestoController extends Controller
             'nombre_repuesto' => 'required|string|max:100',
             'cantidad_disponible' => 'required|integer|min:0',
             'costo_unitario' => 'nullable|numeric',
+            'nivel_critico' => 'required|integer|min:0',
         ]);
 
         $repuesto = Repuesto::create($request->all());
@@ -68,6 +71,7 @@ class RepuestoController extends Controller
             'nombre_repuesto' => 'required|string|max:100',
             'cantidad_disponible' => 'required|integer|min:0',
             'costo_unitario' => 'nullable|numeric',
+            'nivel_critico' => 'required|integer|min:0',
         ]);
 
         $repuesto->update($request->all());
@@ -102,24 +106,5 @@ class RepuestoController extends Controller
             $repuesto->id_repuesto
         );
         return response()->json(['message' => 'Repuesto eliminado']);
-    }
-    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_repuesto)
-    {
-        // Registrar solo para el usuario que hizo la acción
-        Notificacion::create([
-            'id_repuesto' => $id_repuesto,
-            'email_destinatario' => $email_usuario,
-            'asunto' => $asunto,
-            'mensaje' => $mensaje,
-            'fecha_envio' => now(),
-            'estado_envio' => 'Enviado',
-        ]);
-
-        // Enviar correo tanto al usuario como a info@midominio.com
-        $destinatarios = [$email_usuario, 'info@midominio.com'];
-        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
-            $mail->to($destinatarios)
-                ->subject($asunto);
-        });
     }
 }

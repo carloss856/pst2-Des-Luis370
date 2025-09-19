@@ -18,20 +18,26 @@ import UsuarioEditForm from "./components/usuarios/UsuarioEditForm";
 import EquiposList from "./components/equipos/EquiposList";
 import EquipoForm from "./components/equipos/EquipoForm";
 import EquipoEditForm from "./components/equipos/EquipoEditForm";
+import Inventario from "./components/inventario/Inventario";
+import InventarioForm from "./components/inventario/InventarioForm";
 import ServiciosList from "./components/servicios/ServiciosList";
 import ServicioForm from "./components/servicios/ServicioForm";
 import ServicioEditForm from "./components/servicios/ServicioEditForm";
 import RepuestosList from "./components/repuestos/RepuestosList";
 import RepuestosForm from "./components/repuestos/RepuestosForm";
 import RepuestoEditForm from "./components/repuestos/RepuestoEditForm";
-import Inventario from "./components/Inventario";
 import Solicitudes from "./components/solicitudes/SolicitudesRepuestosList";
 import SolicitudesForm from "./components/solicitudes/SolicitudesRepuestosForm";
 import SolicitudesEditForm from "./components/solicitudes/SolicitudesRepuestosEditForm";
 import Notificaciones from "./components/NotificacionesList";
+import NotificacionesConfigForm from "./components/usuarios/NotificacionesConfigForm";
 import Reportes from "./components/ReportesList";
+import ForgotPassword from "./components/usuarios/ResetPassword"
+import ResetPassword from "./components/usuarios/ResetPasswordForm"
+import GarantiasList from "./components/Garantias/GarantiasList";
+import GarantiaEditForm from "./components/garantias/GarantiasEditForm";
 
-// Dashboard de ejemplo
+
 const Dashboard = () => (
   <div className="text-center mt-40 text-white">
     <h2>Bienvenido al sistema</h2>
@@ -46,15 +52,16 @@ function PrivateRoute({ children, roles }) {
   if (roles && !roles.includes(rol || "")) return <Navigate to="/dashboard" />;
   return <>{children}</>;
 }
-
 function AppContent({ isLogged }) {
   return (
     <Box
       sx={{
+        flex: 1,
+        height: "100vh",
         bgcolor: "#48c",
-        minHeight: "100vh",
-        width: "100vw",
-        transition: "margin-left 0.3s",
+        px: { xs: 2, md: 3 },
+        py: 2,
+        overflowX: "hidden"
       }}
     >
       <Routes>
@@ -64,6 +71,8 @@ function AppContent({ isLogged }) {
             <Login onLogin={() => (window.location.href = "/dashboard")} />
           }
         />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route
           path="/dashboard"
           element={
@@ -145,6 +154,22 @@ function AppContent({ isLogged }) {
           }
         />
         <Route
+          path="/inventario"
+          element={
+            <PrivateRoute>
+              <Inventario />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/inventario/crear"
+          element={
+            <PrivateRoute>
+              <InventarioForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/servicios"
           element={
             <PrivateRoute>
@@ -193,14 +218,6 @@ function AppContent({ isLogged }) {
           }
         />
         <Route
-          path="/inventario"
-          element={
-            <PrivateRoute>
-              <Inventario />
-            </PrivateRoute>
-          }
-        />
-        <Route
           path="/solicitudes-repuestos"
           element={
             <PrivateRoute>
@@ -233,10 +250,34 @@ function AppContent({ isLogged }) {
           }
         />
         <Route
+          path="/configuracion/notificaciones"
+          element={
+            <PrivateRoute>
+              <NotificacionesConfigForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/reportes"
           element={
             <PrivateRoute>
               <Reportes />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/garantias"
+          element={
+            <PrivateRoute>
+              <GarantiasList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/garantias/:id/editar"
+          element={
+            <PrivateRoute>
+              <GarantiaEditForm />
             </PrivateRoute>
           }
         />
@@ -253,8 +294,30 @@ function App() {
   return (
     <BrowserRouter>
       <CssBaseline />
-      {isLogged && <NavBar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />}
-      <AppContent isLogged={isLogged} />
+      {isLogged ? (
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, height: "100dvh", bgcolor: "#48c" }}>
+          <NavBar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+          <Box sx={{ flex: 1, flexBasis: "100%", maxWidth: { md: "100%" }, height: "100vh", overflow: "auto" }}>
+            <AppContent />
+          </Box>
+        </Box>
+      ) : (
+        <Box sx={{ height: "100dvh", width: "100dvw", bgcolor: "#48c" }}>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <>
+                  <Login onLogin={() => (window.location.href = "/dashboard")} />
+                </>
+              }
+            />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </Box>
+      )}
     </BrowserRouter>
   );
 }

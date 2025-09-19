@@ -5,16 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Notificacion;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
-
 use App\Models\Equipo;
+use App\Models\PropiedadEquipo;
 use Illuminate\Http\Request;
+use App\Traits\NotificacionTrait;
 
 class EquipoController extends Controller
 {
+    use NotificacionTrait;
     // Listar todos los equipos
     public function index()
     {
-        $equipos = Equipo::all();
+        $equipos = Equipo::with(['propiedad.usuario'])->get();
         return response()->json($equipos);
     }
 
@@ -25,10 +27,23 @@ class EquipoController extends Controller
             'tipo_equipo' => 'required|string|max:50',
             'marca' => 'nullable|string|max:50',
             'modelo' => 'nullable|string|max:50',
-            'id_persona' => 'nullable|exists:usuario,id_persona',
+            'id_persona' => 'required|exists:usuario,id_persona', // quien crea
+            'id_asignado' => 'required|exists:usuario,id_persona', // a quien se asigna
         ]);
 
-        $equipo = Equipo::create($request->all());
+        // 1. Crear equipo con el usuario que lo crea
+        $equipo = Equipo::create([
+            'tipo_equipo' => $request->tipo_equipo,
+            'marca' => $request->marca,
+            'modelo' => $request->modelo,
+            'id_persona' => $request->id_persona,
+        ]);
+
+        \App\Models\PropiedadEquipo::create([
+            'id_equipo' => $equipo->id_equipo,
+            'id_persona' => $request->id_asignado,
+        ]);
+
         $user = auth()->user();
         if (!$user) {
             return response()->json(['error' => 'No autenticado'], 401);
@@ -62,7 +77,12 @@ class EquipoController extends Controller
             'id_persona' => 'nullable|exists:usuario,id_persona',
         ]);
 
-        $equipo->update($request->all());
+        \App\Models\PropiedadEquipo::update([
+            'id_equipo' => $equipo->id_equipo,
+            'id_persona' => $request->id_asignado,
+        ]);
+        
+        $equipo->update($request->only(['tipo_equipo', 'marca', 'modelo']));
         $user = auth()->user();
         if (!$user) {
             return response()->json(['error' => 'No autenticado'], 401);
@@ -94,24 +114,5 @@ class EquipoController extends Controller
             $equipo->id_servicio
         );
         return response()->json(['message' => 'Equipo eliminado']);
-    }
-    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio)
-    {
-        // Registrar solo para el usuario que hizo la acción
-        Notificacion::create([
-            'id_servicio' => $id_servicio,
-            'email_destinatario' => $email_usuario,
-            'asunto' => $asunto,
-            'mensaje' => $mensaje,
-            'fecha_envio' => now(),
-            'estado_envio' => 'Enviado',
-        ]);
-
-        // Enviar correo tanto al usuario como a info@midominio.com
-        $destinatarios = [$email_usuario, 'info@midominio.com'];
-        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
-            $mail->to($destinatarios)
-                ->subject($asunto);
-        });
     }
 }

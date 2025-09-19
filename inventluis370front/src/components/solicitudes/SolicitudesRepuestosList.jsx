@@ -6,6 +6,7 @@ import { getServicios } from "../../services/servicios";
 import ModalConfirm from "../ModalConfirm";
 import ModalAlert from "../ModalAlert";
 import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const SolicitudesRepuestosList = () => {
     const [solicitudes, setSolicitudes] = useState([]);
@@ -16,7 +17,10 @@ const SolicitudesRepuestosList = () => {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [solicitudAEliminar, setSolicitudAEliminar] = useState(null);
     const [alert, setAlert] = useState({ type: "", message: "" });
+    const userId = localStorage.getItem("id_usuario");
+    const userRol = localStorage.getItem("rol_usuario");
     const location = useLocation();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -26,10 +30,10 @@ const SolicitudesRepuestosList = () => {
                 getUsuarios(),
                 getServicios()
             ]);
-            setSolicitudes(Array.isArray(solicitudesData) ? solicitudesData : solicitudesData.data || []);
-            setRepuestos(Array.isArray(repuestosData) ? repuestosData : repuestosData.data || []);
-            setUsuarios(Array.isArray(usuariosData) ? usuariosData : usuariosData.data || []);
-            setServicios(Array.isArray(serviciosData) ? serviciosData : serviciosData.data || []);
+            setSolicitudes(solicitudesData);
+            setRepuestos(repuestosData);
+            setUsuarios(usuariosData);
+            setServicios(serviciosData);
             setLoading(false);
         };
         fetchData();
@@ -44,51 +48,48 @@ const SolicitudesRepuestosList = () => {
             .catch(() => setLoading(false));
     }, []);
 
-  useEffect(() => {
-    if (location.state && location.state.showAlert) {
-      setAlert({
-        type: "success",
-        message: location.state.alertMessage || "Solicitud creada correctamente"
-      });
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
+    useEffect(() => {
+        if (location.state && location.state.showAlert) {
+            setAlert({
+                type: "success",
+                message: location.state.alertMessage || "Solicitud creada correctamente"
+            });
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
 
-  const handleConfirmDelete = async () => {
-    setConfirmOpen(false);
-    try {
-      await deleteSolicitud(`${solicitudAEliminar}`);
-      setSolicitudes(solicitudes.filter(s => s.id_solicitud !== solicitudAEliminar));
-      setAlert({ type: "success", message: "Solicitud eliminada correctamente" });
-    } catch (err) {
-      setAlert({ type: "danger", message: "Error al eliminar la solicitud" });
-    }
-    setSolicitudAEliminar(null);
-  };
+    const handleConfirmDelete = async () => {
+        setConfirmOpen(false);
+        try {
+            await deleteSolicitud(`${solicitudAEliminar}`);
+            setSolicitudes(solicitudes.filter(s => s.id_solicitud !== solicitudAEliminar));
+            setAlert({ type: "success", message: "Solicitud eliminada correctamente" });
+        } catch (err) {
+            setAlert({ type: "danger", message: "Error al eliminar la solicitud" });
+        }
+        setSolicitudAEliminar(null);
+    };
 
     if (loading) {
-        return <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>Cargando...</div>;
+        return <div className="d-flex justify-content-center align-items-center h-100">Cargando...</div>;
     }
 
     return (
-        <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
+        <div className="container d-flex flex-column justify-content-center align-items-center h-100">
             <h2 className="mb-4 text-white">Solicitudes de Repuestos</h2>
             <ModalAlert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
             <div className="table-responsive">
                 <table className="table table-bordered table-striped align-middle">
                     <thead className="table-dark">
                         <tr className="text-center">
-                            <th className="text-nowrap">Numero solicitud</th>
-                            <th className="text-nowrap">Repuesto</th>
-                            <th className="text-nowrap">Servicio</th>
-                            <th className="text-nowrap">Fecha Solicitud</th>
-                            <th className="text-nowrap">Nombre Repuesto</th>
-                            <th className="text-nowrap">Stock Actual</th>
-                            <th className="text-nowrap">Cantidad Solicitada</th>
-                            <th className="text-nowrap">Estado</th>
-                            <th className="text-nowrap">Comentarios</th>
-                            <th className="text-nowrap">Usuario</th>
-                            <th className="text-nowrap">Acciones</th>
+                            <th>Repuesto</th>
+                            <th>Servicio</th>
+                            <th>Fecha Solicitud</th>
+                            <th>Cantidad Solicitada</th>
+                            <th>Estado</th>
+                            <th>Comentarios</th>
+                            <th>Usuario</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -99,19 +100,30 @@ const SolicitudesRepuestosList = () => {
 
                             return (
                                 <tr key={solicitud.id_solicitud} className="text-center">
-                                    <td>{solicitud.id_solicitud}</td>
                                     <td>{repuesto ? repuesto.nombre_repuesto : "N/A"}</td>
                                     <td>{servicio ? servicio.problema_reportado : "N/A"}</td>
                                     <td>{new Date(solicitud.fecha_solicitud).toLocaleDateString()}</td>
-                                    <td>{repuesto ? repuesto.nombre_repuesto : "N/A"}</td>
-                                    <td>{repuesto ? repuesto.cantidad_disponible : "N/A"}</td>
                                     <td>{solicitud.cantidad_solicitada}</td>
                                     <td>{solicitud.estado_solicitud}</td>
                                     <td>{solicitud.comentarios || "N/A"}</td>
                                     <td>{usuario ? usuario.nombre : "N/A"}</td>
-                                    <td className="d-flex justify-content-between">
-                                        <a className="btn btn-sm btn-primary me-2" href={`/solicitudes-repuestos/${solicitud.id_solicitud}/editar`}>Editar</a>
-                                        <button className="btn btn-sm btn-danger" onClick={() => { setSolicitudAEliminar(solicitud.id_solicitud); setConfirmOpen(true); }}>Eliminar</button>
+                                    <td className="d-flex flex-row justify-content-center align-items-center h-100 bg-white" style={{ minHeight: "70px" }}>
+                                        {(userRol === "Administrador" || userRol === "Gerente" || String(solicitud.id_usuario) === String(userId)) ? (
+                                            <>
+                                                <a
+                                                    className="btn btn-sm btn-primary me-2"
+                                                    onClick={() => navigate(`/solicitudes-repuestos/${solicitud.id_solicitud}/editar`)}
+                                                >
+                                                    Editar
+                                                </a>
+                                                <button
+                                                    className="btn btn-sm btn-danger"
+                                                    onClick={() => { setSolicitudAEliminar(solicitud.id_solicitud); setConfirmOpen(true); }}
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            </>
+                                        ) : null}
                                     </td>
                                 </tr>
                             );

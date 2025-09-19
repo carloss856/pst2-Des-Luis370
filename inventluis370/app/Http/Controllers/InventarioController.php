@@ -6,9 +6,11 @@ use App\Models\Inventario;
 use Illuminate\Http\Request;
 use App\Models\Notificacion;
 use Illuminate\Support\Facades\Mail;
+use App\Traits\NotificacionTrait;
 
 class InventarioController extends Controller
 {
+    use NotificacionTrait;
     // Listar todo el inventario
     public function index()
     {
@@ -16,27 +18,20 @@ class InventarioController extends Controller
         return response()->json($inventario);
     }
 
-    // Guardar un nuevo registro de inventario
     public function store(Request $request)
     {
         $request->validate([
-            'id_repuesto' => 'required|exists:repuestos,id_repuesto|unique:inventario,id_repuesto',
-            'cantidad_disponible' => 'required|integer|min:0',
-            'nivel_critico' => 'required|integer|min:0',
-            'ultima_actualizacion' => 'nullable|date',
+            'id_repuesto' => 'required|exists:repuestos,id_repuesto',
+            'cantidad_entrada' => 'required|integer|min:1',
+            'fecha_entrada' => 'nullable|date',
         ]);
 
-        $registro = Inventario::create($request->all());
-        $user = auth()->user();
-        if (!$user) {
-            return response()->json(['error' => 'No autenticado'], 401);
-        }
-        $email_usuario = $user->email;
-        $this->registrarYEnviarNotificacion(
-            'Inventario creado',
-            'Se ha creado un registro de inventario para el repuesto ID: ' . $registro->id_repuesto,
-            $email_usuario,
-        );
+        $registro = Inventario::create([
+            'id_repuesto' => $request->id_repuesto,
+            'cantidad_entrada' => $request->cantidad_entrada,
+            'fecha_entrada' => $request->fecha_entrada ?? now(),
+        ]);
+
         return response()->json($registro, 201);
     }
 
@@ -53,25 +48,11 @@ class InventarioController extends Controller
         $registro = Inventario::findOrFail($id);
 
         $request->validate([
-            'cantidad_disponible' => 'required|integer|min:0',
-            'nivel_critico' => 'required|integer|min:0',
-            'ultima_actualizacion' => 'nullable|date',
+            'cantidad_entrada' => 'required|integer|min:0',
+            'fecha_entrada' => 'nullable|date',
         ]);
 
         $registro->update($request->all());
-
-        // Verifica nivel crítico y envía notificación si corresponde
-        if ($registro->cantidad_disponible < $registro->nivel_critico) {
-            $user = auth()->user();
-            if ($user) {
-                $email_usuario = $user->email;
-                $this->registrarYEnviarNotificacion(
-                    'Stock crítico',
-                    'El repuesto ID: ' . $registro->id_repuesto . ' está por debajo del nivel crítico.',
-                    $email_usuario,
-                );
-            }
-        }
 
         return response()->json($registro);
     }
@@ -92,24 +73,5 @@ class InventarioController extends Controller
         );
         $registro->delete();
         return response()->json(['message' => 'Registro de inventario eliminado']);
-    }
-    private function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio = Null)
-    {
-        // Registrar solo para el usuario que hizo la acción
-        Notificacion::create([
-            'id_servicio' => $id_servicio,
-            'email_destinatario' => $email_usuario,
-            'asunto' => $asunto,
-            'mensaje' => $mensaje,
-            'fecha_envio' => now(),
-            'estado_envio' => 'Enviado',
-        ]);
-
-        // Enviar correo tanto al usuario como a info@midominio.com
-        $destinatarios = [$email_usuario, 'info@midominio.com'];
-        Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto) {
-            $mail->to($destinatarios)
-                ->subject($asunto);
-        });
     }
 }

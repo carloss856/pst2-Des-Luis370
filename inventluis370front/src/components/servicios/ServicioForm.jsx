@@ -2,31 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { createServicio } from '../../services/servicios';
 import { getEquipos } from '../../services/equipos';
 import { useNavigate } from 'react-router-dom';
+import { getRMAs } from '../../services/rma';
+import { getUsuarios } from '../../services/usuarios';
 
 const ServicioForm = () => {
   const [form, setForm] = useState({
     id_equipo: '',
     codigo_rma: '',
-    fecha_ingreso: '',
+    fecha_ingreso: new Date().toISOString().split('T')[0],
     problema_reportado: '',
-    estado: '',
+    estado: 'Pendiente',
     costo_estimado: '',
     costo_real: 0,
     validado_por_gerente: false
   });
+  const [rmas, setRMAs] = useState([]);
   const [equipos, setEquipos] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    getEquipos()
-      .then(res => setEquipos(res))
-      .catch(() => setEquipos([]));
+    getRMAs().then(setRMAs);
+    getUsuarios().then(setUsuarios);
+    getEquipos().then(setEquipos);
   }, []);
-
   const handleChange = e => {
-    const { name, value, type, checked } = e.target;
-    setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async e => {
@@ -52,7 +54,7 @@ const ServicioForm = () => {
             onChange={handleChange}
             required
           >
-            <option value="">Seleccione un equipo</option>
+            <option value="" disabled>Seleccione un equipo</option>
             {equipos.map(equipo => (
               <option key={equipo.id_equipo} value={equipo.id_equipo}>
                 {equipo.tipo_equipo} - {equipo.marca} - {equipo.modelo}
@@ -61,15 +63,24 @@ const ServicioForm = () => {
           </select>
         </div>
         <div className="mb-3">
-          <label className="form-label">Código RMA</label>
-          <input
+          <label className="form-label">Seleccione un Usuario</label>
+          <select
             name="codigo_rma"
-            className="form-control"
+            className="form-select"
             value={form.codigo_rma}
             onChange={handleChange}
-            placeholder="Código RMA"
             required
-          />
+          >
+            <option value="" disabled>Seleccione una opción</option>
+            {rmas.map(rma => {
+              const users = usuarios.find(u => u.id_persona === rma.id_persona);
+              return (
+                <option key={rma.rma} value={rma.rma}>
+                  { users && ( users.nombre) }
+                </option>
+              );
+            })}
+          </select>
         </div>
         <div className="mb-3">
           <label className="form-label">Fecha Ingreso</label>
@@ -80,6 +91,7 @@ const ServicioForm = () => {
             value={form.fecha_ingreso}
             onChange={handleChange}
             required
+            disabled
           />
         </div>
         <div className="mb-3">
@@ -95,18 +107,7 @@ const ServicioForm = () => {
         </div>
         <div className="mb-3">
           <label className="form-label">Estado</label>
-          <select
-            name="estado"
-            className="form-select"
-            value={form.estado}
-            onChange={handleChange}
-            required
-          >
-            <option value="" disabled>Seleccione estado</option>
-            <option value="Pendiente">Pendiente</option>
-            <option value="En proceso">En proceso</option>
-            <option value="Finalizado">Finalizado</option>
-          </select>
+          <input type="text" name="estado" className="form-control" value={form.estado} onChange={handleChange} disabled required />
         </div>
         <div className="mb-3">
           <label className="form-label">Costo Estimado</label>
@@ -120,8 +121,8 @@ const ServicioForm = () => {
           />
         </div>
         <button type="submit" className="btn btn-success mb-2">Guardar</button>
-        {error && <div className="alert alert-danger mt-3">{error}</div>}
         <button className="btn btn-secondary" onClick={() => navigate('/servicios')}>Volver</button>
+        {error && <div className="alert alert-danger mt-3">{error}</div>}
 
       </form>
     </div>

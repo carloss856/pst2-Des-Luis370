@@ -205,7 +205,7 @@ export default function Reportes() {
             <div className="d-flex align-items-center mb-2">
               <h4 className="mb-0 text-white">{entidad.label}</h4>
               <button
-                className="btn btn-outline-primary btn-sm ms-3"
+                className="btn btn-outline-primary bg-primary text-white btn-sm ms-3"
                 onClick={() => cargarDatos(entidad.key)}
                 disabled={loading[entidad.key]}
               >
@@ -215,10 +215,10 @@ export default function Reportes() {
             {datos[entidad.key] && (
               <>
                 <div className="mb-2">
-                  <button className="btn btn-outline-success btn-sm me-2" onClick={() => seleccionarTodos(entidad.key)}>
+                  <button className="btn btn-outline-success bg-success text-white btn-sm me-2" onClick={() => seleccionarTodos(entidad.key)}>
                     Seleccionar todos
                   </button>
-                  <button className="btn btn-outline-secondary btn-sm" onClick={() => deseleccionarTodos(entidad.key)}>
+                  <button className="btn btn-outline-secondary bg-secondary text-white btn-sm" onClick={() => deseleccionarTodos(entidad.key)}>
                     Deseleccionar todos
                   </button>
                 </div>
@@ -228,7 +228,7 @@ export default function Reportes() {
                       <tr>
                         <th>Seleccionar</th>
                         {entidad.columns.map(col => (
-                          <th key={col}>{col}</th>
+                          <th key={col} className="text-center">{col}</th>
                         ))}
                       </tr>
                     </thead>

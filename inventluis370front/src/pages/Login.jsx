@@ -24,7 +24,7 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+    <div className="container d-flex justify-content-center align-items-center h-100">
       <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 350, width: "100%" }}>
         <h2 className="text-center mb-4">Iniciar sesión</h2>
         <div className="mb-3">
@@ -55,6 +55,9 @@ export default function Login({ onLogin }) {
         </div>
         <button type="submit" className="btn btn-primary w-100 mb-2">Iniciar sesión</button>
         {error && <div className="alert alert-danger mt-2">{error}</div>}
+        <button className="btn btn-link" onClick={() => (window.location.href = "/forgot-password")}>
+          ¿Olvidaste tu contraseña?
+        </button>
       </form>
     </div>
   );

@@ -44,34 +44,34 @@ export default function EmpresasList() {
   };
 
   if (loading) return (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+    <div className="d-flex justify-content-center align-items-center h-100">
       Cargando...
     </div>
   );
 
   return (
-    <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+    <div className="container d-flex flex-column justify-content-center align-items-center h-100">
       <h2 className="mb-4 text-white">Empresas</h2>
       <ModalAlert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
       <div className="table-responsive">
         <table className="table table-bordered table-striped align-middle">
           <thead className="table-dark">
-            <tr>
-              <th className="text-center">Nombre</th>
-              <th className="text-center">Dirección</th>
-              <th className="text-center">Teléfono</th>
-              <th className="text-center">Email</th>
-              <th className="text-center">Acciones</th>
+            <tr className="text-center">
+              <th>Nombre</th>
+              <th>Dirección</th>
+              <th>Teléfono</th>
+              <th>Email</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {empresas.map(empresa => (
-              <tr key={empresa.id_empresa}>
-                <td className="text-center">{empresa.nombre_empresa}</td>
-                <td className="text-center">{empresa.direccion}</td>
-                <td className="text-center">{empresa.telefono}</td>
-                <td className="text-center">{empresa.email}</td>
-                <td className="text-center">
+              <tr key={empresa.id_empresa} className="text-center">
+                <td>{empresa.nombre_empresa}</td>
+                <td>{empresa.direccion}</td>
+                <td>{empresa.telefono}</td>
+                <td>{empresa.email}</td>
+                <td>
                   <a className="btn btn-sm btn-primary me-2" href={`/empresas/${empresa.id_empresa}/editar`}>Editar</a>
                   <button className="btn btn-sm btn-danger" onClick={() => { setEmpresaAEliminar(empresa.id_empresa); setConfirmOpen(true); }}>Eliminar</button>
                 </td>
