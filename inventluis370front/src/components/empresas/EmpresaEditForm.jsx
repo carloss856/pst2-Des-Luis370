@@ -36,15 +36,19 @@ const EmpresaEditForm = () => {
             <form onSubmit={handleSubmit} className="card p-4" style={{ width: 400 }}>
                 <h2 className="text-center mb-4">Editar Empresa</h2>
                 <div className="mb-3">
+                    <label htmlFor="nombre_empresa">Nombre de la Empresa</label>
                     <input className="form-control" value={form.nombre_empresa} onChange={e => setForm({ ...form, nombre_empresa: e.target.value })} placeholder="Nombre de la Empresa" required />
                 </div>
                 <div className="mb-3">
+                    <label htmlFor="direccion">Dirección</label>
                     <input className="form-control" value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Dirección" />
                 </div>
                 <div className="mb-3">
+                    <label htmlFor="telefono">Teléfono</label>
                     <input className="form-control" value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} placeholder="Teléfono" />
                 </div>
                 <div className="mb-3">
+                    <label htmlFor="email">Email</label>
                     <input className="form-control" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="Email" />
                 </div>
                 <button type="submit" className="btn btn-primary mb-2">Actualizar</button>

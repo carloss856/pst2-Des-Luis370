@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../services/api';
+import logo from "../assets/Logo_Luis370.png";
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -24,7 +25,8 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center h-100">
+    <div className="container d-flex flex-column justify-content-center align-items-center h-100">
+      <img className='mb-4' src={logo} alt="Logo" style={{ maxWidth: 600, marginBottom: 20, borderRadius: 20 }} />
       <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 350, width: "100%" }}>
         <h2 className="text-center mb-4">Iniciar sesión</h2>
         <div className="mb-3">

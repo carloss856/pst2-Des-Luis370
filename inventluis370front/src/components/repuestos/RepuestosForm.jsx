@@ -39,6 +39,7 @@ export default function RepuestoForm() {
             <form onSubmit={handleSubmit} className="card p-4" style={{ width: 400 }}>
                 <h2 className="text-center mb-4">Crear Repuesto</h2>
                 <div className="mb-3">
+                    <label htmlFor="nombre_repuesto">Nombre</label>
                     <input
                         name="nombre_repuesto"
                         className="form-control"
@@ -49,6 +50,7 @@ export default function RepuestoForm() {
                     />
                 </div>
                 <div className="mb-3">
+                    <label htmlFor="cantidad_disponible">Cantidad Disponible</label>
                     <input
                         disabled
                         name="cantidad_disponible"
@@ -61,6 +63,7 @@ export default function RepuestoForm() {
                     />
                 </div>
                 <div className="mb-3">
+                    <label htmlFor="costo_unitario">Costo Unitario</label>
                     <input
                         name="costo_unitario"
                         type="number"
@@ -72,6 +75,7 @@ export default function RepuestoForm() {
                     />
                 </div>
                 <div className="mb-3">
+                    <label htmlFor="nivel_critico">Nivel Crítico</label>
                     <input
                         name="nivel_critico"
                         type="number"

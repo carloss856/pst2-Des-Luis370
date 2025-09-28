@@ -53,6 +53,7 @@ export default function InventarioForm() {
         <div className="container d-flex justify-content-center align-items-center h-100">
             <form onSubmit={handleSubmit} className="card p-4" style={{ width: 400 }}>
                 <h2 className="text-center mb-4">Entrada de mercancia</h2>
+                <label htmlFor="id_repuesto">Repuesto</label>
                 <select className="mb-3" onChange={handleChange} name="id_repuesto" value={form.id_repuesto} required>
                     <option value="" disabled>Seleccione un repuesto</option>
                     {repuestos.map(rep => (
@@ -62,6 +63,7 @@ export default function InventarioForm() {
                     ))}
                 </select>
                 <div className="mb-3">
+                    <label htmlFor="cantidad_entrada">Cantidad de Entrada</label>
                     <input
                         name="cantidad_entrada"
                         type="number"

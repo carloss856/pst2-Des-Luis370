@@ -36,6 +36,7 @@ const EmpresaForm = () => {
             <form onSubmit={handleSubmit} className="card p-4" style={{ width: 400 }}>
                 <h2 className="text-center mb-4">Nueva empresa</h2>
                 <div className="mb-3">
+                    <label htmlFor="nombre_empresa">Nombre de la Empresa</label>
                     <input
                         className="form-control"
                         value={form.nombre_empresa}
@@ -46,6 +47,7 @@ const EmpresaForm = () => {
                     />
                 </div>
                 <div className="mb-3">
+                    <label htmlFor="direccion">Dirección</label>
                     <input
                         className="form-control"
                         value={form.direccion}
@@ -55,6 +57,7 @@ const EmpresaForm = () => {
                     />
                 </div>
                 <div className="mb-3">
+                    <label htmlFor="telefono">Teléfono</label>
                     <input
                         className="form-control"
                         value={form.telefono}
@@ -64,6 +67,7 @@ const EmpresaForm = () => {
                     />
                 </div>
                 <div className="mb-3">
+                    <label htmlFor="email">Email</label>
                     <input
                         className="form-control"
                         value={form.email}

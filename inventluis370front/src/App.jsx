@@ -2,6 +2,7 @@ import React from "react";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import NavBar from "./components/NavBar";
+import logo from "./assets/logo_LUIS370.png";
 import {
   BrowserRouter,
   Routes,
@@ -39,7 +40,7 @@ import GarantiaEditForm from "./components/garantias/GarantiasEditForm";
 
 
 const Dashboard = () => (
-  <div className="text-center mt-40 text-white">
+  <div className="text-center mt-40 text-white d-flex flex-column mt-5">
     <h2>Bienvenido al sistema</h2>
     <p>Selecciona una opción del menú.</p>
   </div>
