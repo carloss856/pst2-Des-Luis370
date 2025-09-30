@@ -37,11 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/propiedad-equipos', PropiedadEquipoController::class);
     Route::get('propiedad-equipo/{id_equipo}', [PropiedadEquipoController::class, 'showByEquipo']);
     Route::apiResource('/servicios', ServicioController::class);
-    Route::get('/garantias/{id}', [GarantiaController::class, 'show']);
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::put('/garantias/{id}', [GarantiaController::class, 'update']);
-        Route::delete('/garantias/{id}', [GarantiaController::class, 'destroy']);
-    });
+    Route::apiResource('/garantias', GarantiaController::class);
     Route::apiResource('/repuestos', RepuestoController::class);
     Route::apiResource('/inventario', InventarioController::class);
     Route::apiResource('/solicitud-repuestos', SolicitudRepuestoController::class);
