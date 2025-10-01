@@ -60,7 +60,7 @@ class UsuarioController extends Controller
             'Usuario creado',
             'Se ha creado el usuario: ' . $usuario->nombre . ' (' . $usuario->email . ')',
             $email_usuario,
-            $usuario->id_servicio
+            $usuario->id_servicio ?? null
         );
         return response()->json($usuario, 201);
     }
@@ -104,7 +104,7 @@ class UsuarioController extends Controller
             'Usuario actualizado',
             'Se ha actualizado el usuario: ' . $usuario->nombre . ' (' . $usuario->email . ')',
             $email_usuario,
-            $usuario->id_servicio
+            $usuario->id_servicio ?? null
         );
         return response()->json($usuario);
     }
@@ -124,7 +124,7 @@ class UsuarioController extends Controller
             'Usuario eliminado',
             'Se ha eliminado el usuario: ' . $nombre . ' (' . $email . ')',
             $email_usuario,
-            $usuario->id_servicio
+            $usuario->id_servicio ?? null
         );
         $usuario->delete();
         return response()->json(['message' => 'Usuario eliminado']);

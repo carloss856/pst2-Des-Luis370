@@ -63,7 +63,7 @@ class AuthController extends Controller
             'Inicio de sesión exitoso',
             'El usuario ' . $usuario->nombre . ' ha iniciado sesión correctamente.',
             $usuario->email,
-            $usuario->id_servicio
+            $usuario->id_servicio ?? null
         );
 
         return response()->json([

@@ -31,11 +31,26 @@ trait NotificacionTrait
             'estado_envio' => 'Enviado',
         ]);
 
-        $correoNotificacion = env('NOTIFICACION_CORREO');
-        Mail::raw($mensaje, function ($mail) use ($email_usuario, $correoNotificacion, $asunto) {
-            $mail->to($email_usuario)
-                ->bcc($correoNotificacion)
-                ->subject($asunto);
-        });
+        // Destinatarios seguros
+        $correoNotificacion = env('NOTIFICACION_CORREO'); // .env
+        $fromFallback = config('mail.from.address');
+        $destinatarios = array_values(array_filter([
+            $email_usuario,
+            $correoNotificacion,
+        ]));
+
+        try {
+            Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto, $fromFallback) {
+                if ($fromFallback) {
+                    $mail->from($fromFallback, config('mail.from.name'));
+                }
+                $mail->to($destinatarios)->subject($asunto);
+            });
+        } catch (\Throwable $e) {
+            \Log::error('Error enviando correo de notificación: '.$e->getMessage(), [
+                'asunto' => $asunto,
+                'dest' => $destinatarios
+            ]);
+        }
     }
 }

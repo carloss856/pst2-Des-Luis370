@@ -53,7 +53,7 @@ class EquipoController extends Controller
             'Equipo creado',
             'Se ha creado el equipo: ' . $equipo->tipo_equipo . ' ' . $equipo->marca . ' ' . $equipo->modelo,
             $email_usuario,
-            $equipo->id_servicio
+            $equipo->id_servicio ?? null
         );
         return response()->json($equipo, 201);
     }
@@ -92,7 +92,7 @@ class EquipoController extends Controller
             'Equipo actualizado',
             'Se ha actualizado el equipo: ' . $equipo->tipo_equipo . ' ' . $equipo->marca . ' ' . $equipo->modelo,
             $email_usuario,
-            $equipo->id_servicio
+            $equipo->id_servicio ?? null
         );
         return response()->json($equipo);
     }
@@ -111,7 +111,7 @@ class EquipoController extends Controller
             'Equipo eliminado',
             'Se ha eliminado el equipo: ' . $equipo->tipo_equipo . ' ' . $equipo->marca . ' ' . $equipo->modelo,
             $email_usuario,
-            $equipo->id_servicio
+            $equipo->id_servicio ?? null
         );
         return response()->json(['message' => 'Equipo eliminado']);
     }

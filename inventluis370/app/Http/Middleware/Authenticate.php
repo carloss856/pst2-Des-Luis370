@@ -6,13 +6,11 @@ use Illuminate\Auth\Middleware\Authenticate as Middleware;
 
 class Authenticate extends Middleware
 {
-    /**
-     * Get the path the user should be redirected to when they are not authenticated.
-     */
     protected function redirectTo($request): ?string
     {
+        // Si la request NO espera JSON → devolvemos 401 en lugar de redirigir
         if (! $request->expectsJson()) {
-            return route('login');
+            abort(response()->json(['message' => 'Unauthorized'], 401));
         }
         return null;
     }

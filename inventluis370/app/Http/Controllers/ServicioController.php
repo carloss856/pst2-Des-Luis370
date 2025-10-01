@@ -54,7 +54,7 @@ class ServicioController extends Controller
             'Servicio creado',
             'Se ha creado el servicio con código RMA: ' . $servicio->codigo_rma,
             $email_usuario,
-            $servicio->id_servicio
+            $servicio->id_servicio ?? null
         );
         return response()->json([
             'servicio' => $servicio,
@@ -97,7 +97,7 @@ class ServicioController extends Controller
             'Servicio actualizado',
             'Se ha actualizado el servicio con código RMA: ' . $servicio->codigo_rma,
             $email_usuario,
-            $servicio->id_servicio
+            $servicio->id_servicio ?? null
         );
         return response()->json($servicio);
     }

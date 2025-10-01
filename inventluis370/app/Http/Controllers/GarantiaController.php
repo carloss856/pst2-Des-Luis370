@@ -37,7 +37,7 @@ class GarantiaController extends Controller
             'Garantía creada',
             'Se ha creado una garantía para el servicio ID: ' . $garantia->id_servicio,
             $email_usuario,
-            $garantia->id_servicio
+            $garantia->id_servicio ?? null
         );
         return response()->json($garantia, 201);
     }
@@ -75,7 +75,7 @@ class GarantiaController extends Controller
             'Garantía actualizada',
             'Se ha actualizado la garantía para el servicio ID: ' . $garantia->id_servicio,
             $email_usuario,
-            $garantia->id_servicio
+            $garantia->id_servicio ?? null
         );
         return response()->json($garantia);
     }
@@ -94,7 +94,7 @@ class GarantiaController extends Controller
             'Garantía eliminada',
             'Se ha eliminado la garantía para el servicio ID: ' . $garantia->id_servicio,
             $email_usuario,
-            $garantia->id_servicio
+            $garantia->id_servicio ?? null
         );
         return response()->json(['message' => 'Garantía eliminada']);
     }

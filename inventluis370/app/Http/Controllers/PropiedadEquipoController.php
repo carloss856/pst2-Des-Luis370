@@ -36,7 +36,7 @@ class PropiedadEquipoController extends Controller
             'Propiedad de equipo asignada',
             'Se ha asignado el equipo ID: ' . $propiedad->id_equipo . ' a la persona ID: ' . $propiedad->id_persona,
             $email_usuario,
-            $propiedad->id_servicio
+            $propiedad->id_servicio ?? null
         );
         return response()->json($propiedad, 201);
     }
@@ -68,7 +68,7 @@ class PropiedadEquipoController extends Controller
             'Propiedad de equipo actualizada',
             'Se ha actualizado la propiedad del equipo ID: ' . $propiedad->id_equipo . ' para la persona ID: ' . $propiedad->id_persona,
             $email_usuario,
-            $propiedad->id_servicio
+            $propiedad->id_servicio ?? null
         );
         return response()->json($propiedad);
     }
@@ -87,7 +87,7 @@ class PropiedadEquipoController extends Controller
             'Propiedad de equipo eliminada',
             'Se ha eliminado la relación de propiedad del equipo ID: ' . $propiedad->id_equipo . ' para la persona ID: ' . $propiedad->id_persona,
             $email_usuario,
-            $propiedad->id_servicio
+            $propiedad->id_servicio ?? null
         );
         return response()->json(['message' => 'Propiedad eliminada']);
     }

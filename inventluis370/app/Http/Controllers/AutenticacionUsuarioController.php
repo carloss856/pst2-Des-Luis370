@@ -41,7 +41,7 @@ class AutenticacionUsuarioController extends Controller
             'Nuevo usuario autenticado',
             'Se ha creado el usuario: ' . $usuario->codigo_usuario,
             $email_usuario,
-            $usuario->id_servicio
+            $usuario->id_servicio ?? null
         );
         return response()->json($usuario, 201);
     }
@@ -76,7 +76,7 @@ class AutenticacionUsuarioController extends Controller
             'Actualización de usuario con éxito',
             'Se ha actualizado el usuario: ' . $usuario->codigo_usuario,
             $email_usuario,
-            $usuario->id_servicio
+            $usuario->id_servicio ?? null
         );
         return response()->json($usuario);
     }
@@ -95,7 +95,7 @@ class AutenticacionUsuarioController extends Controller
             'Eliminación de usuario con éxito',
             'Se ha eliminado el usuario: ' . $usuario->codigo_usuario,
             $email_usuario,
-            $usuario->id_servicio
+            $usuario->id_servicio ?? null
         );
         return response()->json(['message' => 'Registro eliminado']);
     }

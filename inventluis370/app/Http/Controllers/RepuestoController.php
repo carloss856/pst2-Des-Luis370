@@ -33,7 +33,7 @@ class RepuestoController extends Controller
 
         // Crear inventario asociado
         Inventario::create([
-            'id_repuesto' => $repuesto->id_repuesto,
+            'nombre_repuesto' => $repuesto->nombre_repuesto,
             'cantidad_disponible' => $repuesto->cantidad_disponible,
             'ultima_actualizacion' => now(),
         ]);
@@ -50,7 +50,8 @@ class RepuestoController extends Controller
             'Repuesto creado',
             'Se ha creado el repuesto: ' . $repuesto->nombre_repuesto,
             $email_usuario,
-            $repuesto->id_repuesto
+            $repuesto->id_repuesto,
+            $repuesto->id_servicio ?? null
         );
         return response()->json($repuesto, 201);
     }
@@ -84,7 +85,8 @@ class RepuestoController extends Controller
             'Repuesto actualizado',
             'Se ha actualizado el repuesto: ' . $repuesto->nombre_repuesto,
             $email_usuario,
-            $repuesto->id_repuesto
+            $repuesto->id_repuesto,
+            $repuesto->id_servicio ?? null
         );
         return response()->json($repuesto);
     }
@@ -103,7 +105,8 @@ class RepuestoController extends Controller
             'Repuesto eliminado',
             'Se ha eliminado el repuesto: ' . $repuesto->nombre_repuesto,
             $email_usuario,
-            $repuesto->id_repuesto
+            $repuesto->id_repuesto,
+            $repuesto->id_servicio ?? null
         );
         return response()->json(['message' => 'Repuesto eliminado']);
     }

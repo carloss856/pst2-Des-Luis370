@@ -56,7 +56,7 @@ class SolicitudRepuestoController extends Controller
             'Solicitud de repuesto creada',
             'Se ha creado una solicitud de repuesto para el repuesto ID: ' . $solicitud->id_repuesto . ', cantidad: ' . $solicitud->cantidad_solicitada,
             $email_usuario,
-            $solicitud->id_servicio
+            $solicitud->id_servicio ?? null
         );
         return response()->json($solicitud, 201);
     }
@@ -92,7 +92,7 @@ class SolicitudRepuestoController extends Controller
             'Solicitud de repuesto actualizada',
             'Se ha actualizado la solicitud de repuesto ID: ' . $solicitud->id,
             $email_usuario,
-            $solicitud->id_servicio
+            $solicitud->id_servicio ?? null
         );
         return response()->json($solicitud);
     }
@@ -111,7 +111,7 @@ class SolicitudRepuestoController extends Controller
             'Solicitud de repuesto eliminada',
             'Se ha eliminado la solicitud de repuesto ' . $info,
             $email_usuario,
-            $solicitud->id_servicio
+            $solicitud->id_servicio ?? null
         );
         return response()->json(['message' => 'Solicitud eliminada']);
     }

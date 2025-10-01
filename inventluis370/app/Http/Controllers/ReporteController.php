@@ -38,7 +38,7 @@ class ReporteController extends Controller
             'Reporte generado',
             'Se ha generado un nuevo reporte de tipo: ' . $reporte->tipo_reporte,
             $email_usuario,
-            $reporte->id_reporte
+            $reporte->id_reporte ?? null
         );
         return response()->json($reporte, 201);
     }
@@ -72,7 +72,7 @@ class ReporteController extends Controller
             'Reporte actualizado',
             'Se ha actualizado el reporte de tipo: ' . $reporte->tipo_reporte,
             $email_usuario,
-            $reporte->id_reporte
+            $reporte->id_reporte ?? null
         );
         return response()->json($reporte);
     }
@@ -91,7 +91,7 @@ class ReporteController extends Controller
             'Reporte eliminado',
             'Se ha eliminado el reporte de tipo: ' . $reporte->tipo_reporte ,
             $email_usuario,
-            $reporte->id_servicio
+            $reporte->id_servicio ?? null
         );
         return response()->json(['message' => 'Reporte eliminado']);
     }

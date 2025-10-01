@@ -70,6 +70,7 @@ class InventarioController extends Controller
             'Inventario eliminado',
             'Se ha eliminado el registro de inventario para el repuesto ID: ' . $registro->id_repuesto,
             $email_usuario,
+            null
         );
         $registro->delete();
         return response()->json(['message' => 'Registro de inventario eliminado']);
