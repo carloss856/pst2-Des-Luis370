@@ -13,6 +13,7 @@ export default function Login({ onLogin }) {
       const res = await api.post('/login', { email, contrasena });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('id_usuario', res.data.usuario.id_persona);
+      localStorage.setItem('nombre_usuario', res.data.usuario.nombre);
       localStorage.setItem('rol_usuario', res.data.usuario.tipo);
       onLogin && onLogin();
     } catch (err) {

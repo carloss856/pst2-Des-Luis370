@@ -16,23 +16,25 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import logo from "../assets/Logo_Luis370.png";
 import SettingsIcon from "@mui/icons-material/Settings";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 
 function SidebarContent({ location, rol, handleLogout, onClose }) {
   const commonLinks = [
     { to: "/empresas", label: "Empresas", icon: <BusinessIcon /> },
     { to: "/equipos", label: "Equipos", icon: <BuildIcon /> },
-    { to: "/servicios", label: "Servicios", icon: <BuildIcon /> },
     { to: "/repuestos", label: "Repuestos", icon: <InventoryIcon /> },
+    { to: "/servicios", label: "Servicios", icon: <BuildIcon /> },
     { to: "/solicitudes-repuestos", label: "Solicitudes de Repuestos", icon: <BuildIcon /> },
+    { to: "/notificaciones", label: "Notificaciones", icon: <NotificationsIcon /> },
   ];
   const adminLinks = [
     { to: "/inventario", label: "Inventario", icon: <InventoryIcon /> },
-    { to: "/notificaciones", label: "Notificaciones", icon: <NotificationsIcon /> },
+    { to: "/garantias", label: "Garantías", icon: <BuildIcon /> },
     { to: "/reportes", label: "Reportes", icon: <ReportIcon /> },
     { to: "/usuarios", label: "Usuarios del Sistema", icon: <PeopleIcon /> },
-    { to: "/garantias", label: "Garantías", icon: <BuildIcon /> },
   ];
+  const user = localStorage.getItem("nombre_usuario");
 
   const renderLinks = (links) => links.map(link => (
     <ListItem key={link.to} disablePadding sx={{ width: "100%" }}>
@@ -90,6 +92,26 @@ function SidebarContent({ location, rol, handleLogout, onClose }) {
       </Box>
       <Divider />
       <List sx={{ py: 0.5 }}>
+        <ListItem disablePadding>
+          <ListItemButton
+            disabled
+            sx={{
+              width: "100%",
+              color: "#fff",
+              px: 2,
+              py: 1,
+              "&.Mui-disabled": { opacity: 1 }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 36, color: "#fff" }}>
+              <AccountCircleIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary={`Usuario: ${user}`}
+              primaryTypographyProps={{ sx: { fontSize: 14 } }}
+            />
+          </ListItemButton>
+        </ListItem>
         <ListItem disablePadding>
           <ListItemButton
             component={Link}

@@ -43,5 +43,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/solicitud-repuestos', SolicitudRepuestoController::class);
     Route::apiResource('/notificaciones', NotificacionController::class);
     Route::apiResource('/reportes', ReporteController::class);
-    Route::apiResource('/rmas', RmaController::class);
+    Route::apiResource('/rma', RmaController::class);
 });

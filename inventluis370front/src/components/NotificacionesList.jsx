@@ -119,6 +119,7 @@ const NotificacionesList = () => {
             <option value={50}>50</option>
             <option value={100}>100</option>
           </select>
+          <span className="ms-2">de {notificaciones.length} notificaciones</span>
         </div>
         <div>
           <nav>

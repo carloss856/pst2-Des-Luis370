@@ -78,7 +78,7 @@ export default function InventarioForm() {
                 <button type="submit" className="btn btn-success w-100 mb-2" disabled={saving || loading}>
                     {saving ? 'Guardando...' : 'Guardar'}
                 </button>
-                <button type="button" className="btn btn-secondary w-100" onClick={() => navigate('/repuestos')} disabled={saving}>
+                <button type="button" className="btn btn-secondary w-100" onClick={() => navigate('/inventario')} disabled={saving}>
                     Volver
                 </button>
                 {error && <div className="alert alert-danger mt-3">{error}</div>}

@@ -33,6 +33,7 @@ class RepuestoController extends Controller
 
         // Crear inventario asociado
         Inventario::create([
+            'id_repuesto' => $repuesto->id_repuesto,
             'nombre_repuesto' => $repuesto->nombre_repuesto,
             'cantidad_disponible' => $repuesto->cantidad_disponible,
             'ultima_actualizacion' => now(),

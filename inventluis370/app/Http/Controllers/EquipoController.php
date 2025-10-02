@@ -75,12 +75,19 @@ class EquipoController extends Controller
             'marca' => 'nullable|string|max:50',
             'modelo' => 'nullable|string|max:50',
             'id_persona' => 'nullable|exists:usuario,id_persona',
+            'id_asignado' => 'nullable|exists:usuario,id_persona',
         ]);
+        
+        $propiedad = PropiedadEquipo::where('id_equipo', $equipo->id_equipo)->first();
 
-        \App\Models\PropiedadEquipo::update([
-            'id_equipo' => $equipo->id_equipo,
-            'id_persona' => $request->id_asignado,
-        ]);
+        if ($propiedad) {
+            $propiedad->update(['id_persona' => $request->id_asignado]);
+        } else {
+            PropiedadEquipo::create([
+                'id_equipo' => $equipo->id_equipo,
+                'id_persona' => $request->id_asignado,
+            ]);
+        }
         
         $equipo->update($request->only(['tipo_equipo', 'marca', 'modelo']));
         $user = auth()->user();

@@ -5,52 +5,76 @@ namespace App\Traits;
 use App\Models\Notificacion;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Servicio;
 
 trait NotificacionTrait
 {
-    public function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio, $tipo = null)
+    public function registrarYEnviarNotificacion($asunto, $mensaje, $email_usuario, $id_servicio = null, $tipo = null)
     {
+        // Buscar usuario solo para preferencias (no bloquear el registro si no existe)
         $usuario = Usuario::where('email', $email_usuario)->first();
-        if (!$usuario) return;
 
-        if (!$usuario->recibir_notificaciones) return;
-
-        if ($tipo && $usuario->tipos_notificacion) {
-            $preferencias = is_array($usuario->tipos_notificacion)
-                ? $usuario->tipos_notificacion
-                : json_decode($usuario->tipos_notificacion, true);
-            if (!in_array($tipo, $preferencias)) return;
+        // Evaluar si se debe ENVIAR correo (aunque SIEMPRE registraremos la notificación)
+        $omitirEnvioPorPreferencias = false;
+        if ($usuario) {
+            if (!$usuario->recibir_notificaciones) {
+                $omitirEnvioPorPreferencias = true;
+            }
+            if ($tipo && $usuario->tipos_notificacion) {
+                $preferencias = is_array($usuario->tipos_notificacion)
+                    ? $usuario->tipos_notificacion
+                    : json_decode($usuario->tipos_notificacion, true);
+                if (is_array($preferencias) && !in_array($tipo, $preferencias)) {
+                    $omitirEnvioPorPreferencias = true;
+                }
+            }
         }
 
-        Notificacion::create([
-            'id_servicio' => $id_servicio,
+        $servicioValido = null;
+        if ($id_servicio) {
+            $servicioValido = \App\Models\Servicio::find($id_servicio);
+        }
+        $notificacion = Notificacion::create([
+            'id_servicio' => $servicioValido ? $id_servicio : null,
             'email_destinatario' => $email_usuario,
             'asunto' => $asunto,
             'mensaje' => $mensaje,
             'fecha_envio' => now(),
-            'estado_envio' => 'Enviado',
+            'estado_envio' => $omitirEnvioPorPreferencias ? 'Fallido' : 'Pendiente',
         ]);
 
-        // Destinatarios seguros
-        $correoNotificacion = env('NOTIFICACION_CORREO'); // .env
+        if ($omitirEnvioPorPreferencias) {
+            return;
+        }
+
+        $correoNotificacion = trim((string) env('NOTIFICACION_CORREO'));
         $fromFallback = config('mail.from.address');
-        $destinatarios = array_values(array_filter([
-            $email_usuario,
-            $correoNotificacion,
-        ]));
+        $to = $email_usuario;
+        $bcc = array_values(array_filter(array_map('trim', explode(',', $correoNotificacion))));
 
         try {
-            Mail::raw($mensaje, function ($mail) use ($destinatarios, $asunto, $fromFallback) {
+            Mail::raw($mensaje, function ($mail) use ($to, $bcc, $asunto, $fromFallback) {
                 if ($fromFallback) {
                     $mail->from($fromFallback, config('mail.from.name'));
                 }
-                $mail->to($destinatarios)->subject($asunto);
+                $mail->to($to)->subject($asunto);
+                if (!empty($bcc)) {
+                    $mail->bcc($bcc);
+                }
             });
+
+            if ($notificacion) {
+                $notificacion->update(['estado_envio' => 'Enviado']);
+            }
         } catch (\Throwable $e) {
-            \Log::error('Error enviando correo de notificación: '.$e->getMessage(), [
+            \Log::error('Error enviando correo de notificación: ' . $e->getMessage(), [
                 'asunto' => $asunto,
-                'dest' => $destinatarios
+                'dest_to' => $to,
+                'dest_bcc' => $bcc,
             ]);
+            if ($notificacion) {
+                $notificacion->update(['estado_envio' => 'Fallido']);
+            }
         }
     }
 }

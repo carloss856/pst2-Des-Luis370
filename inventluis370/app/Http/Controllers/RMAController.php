@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Rma;
 use Illuminate\Http\Request;
 
-class RmaController extends Controller
+class RMAController extends Controller
 {
     // Listar todos los RMA
     public function index()

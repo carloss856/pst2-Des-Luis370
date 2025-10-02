@@ -5,9 +5,9 @@ import { createRepuesto, getRepuestos } from '../../services/repuestos';
 export default function RepuestoForm() {
     const [form, setForm] = useState({
         nombre_repuesto: '',
-        cantidad_disponible: 0,
+        cantidad_disponible: "0",
         costo_unitario: '',
-        nivel_critico: 0
+        nivel_critico: "0"
     });
     const [error, setError] = useState('');
     const navigate = useNavigate();
