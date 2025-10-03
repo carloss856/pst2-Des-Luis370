@@ -35,7 +35,7 @@ class PasswordResetController extends Controller
         $auth->token_recuperacion_expires_at = Carbon::now()->addMinutes(30);
         $auth->save();
 
-        $link = config('app.url').'/reset-password?email='.urlencode($usuario->email);
+        $link = env('FRONTEND_URL', 'https://inventario.cssubero.com').'/reset-password?email='.urlencode($usuario->email);
 
         try {
             \Log::info('Enviando token recuperación a '.$usuario->email);

@@ -60,8 +60,8 @@ class AuthController extends Controller
         $token = $usuario->createToken('auth_token')->plainTextToken;
 
         $this->registrarYEnviarNotificacion(
-            'Inicio de sesión exitoso',
-            'El usuario ' . $usuario->nombre . ' ha iniciado sesión correctamente.',
+            'Inicio de sesion exitoso',
+            'El usuario ' . $usuario->nombre . ' ha iniciado sesion correctamente.',
             $usuario->email,
             $usuario->id_servicio ?? null
         );
@@ -77,6 +77,6 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Sesión cerrada']);
+        return response()->json(['message' => 'Sesion cerrada']);
     }
 }

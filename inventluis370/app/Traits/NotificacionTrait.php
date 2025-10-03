@@ -37,8 +37,8 @@ trait NotificacionTrait
         $notificacion = Notificacion::create([
             'id_servicio' => $servicioValido ? $id_servicio : null,
             'email_destinatario' => $email_usuario,
-            'asunto' => $asunto,
-            'mensaje' => $mensaje,
+            'asunto' => mb_convert_encoding($asunto, 'UTF-8', 'UTF-8'),
+            'mensaje' => mb_convert_encoding($mensaje, 'UTF-8', 'UTF-8'),
             'fecha_envio' => now(),
             'estado_envio' => $omitirEnvioPorPreferencias ? 'Fallido' : 'Pendiente',
         ]);
