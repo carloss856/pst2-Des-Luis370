@@ -35,16 +35,17 @@ class ServicioController extends Controller
 
         $servicio = Servicio::create($request->all());
 
-        $fechaInicio = Carbon::parse($servicio->fecha_ingreso);
-        $fechaFin = $fechaInicio->copy()->addDays(90);
+        //$fechaInicio = Carbon::parse($servicio->fecha_ingreso);
+        //$fechaFin = $fechaInicio->copy()->addDays(90);
 
-        $garantia = \App\Models\Garantia::create([
-            'id_servicio' => $servicio->id_servicio,
-            'fecha_inicio' => $fechaInicio,
-            'fecha_fin' => $fechaFin,
-            'observaciones' => null,
-            'validado_por_gerente' => false,
-        ]);
+        // $garantia = \App\Models\Garantia::create([
+        //     'id_servicio' => $servicio->id_servicio,
+        //     'fecha_inicio' => $fechaInicio,
+        //     'fecha_fin' => $fechaFin,
+        //     'observaciones' => null,
+        //     'validado_por_gerente' => false,
+        // ]);
+
         $user = auth()->user();
         if (!$user) {
             return response()->json(['error' => 'No autenticado'], 401);
@@ -58,7 +59,7 @@ class ServicioController extends Controller
         );
         return response()->json([
             'servicio' => $servicio,
-            'garantia' => $garantia,
+            //'garantia' => $garantia,
             'id_servicio' => $servicio->id_servicio,
             'fecha_creacion' => $servicio->fecha_ingreso,
         ], 201);
@@ -75,6 +76,9 @@ class ServicioController extends Controller
     public function update(Request $request, $id)
     {
         $servicio = Servicio::findOrFail($id);
+        $validated = $request->all();
+        $estadoAnterior = $servicio->validado_por_gerente;
+        $servicio->update($validated);
 
         $request->validate([
             'id_equipo' => 'required|exists:equipos,id_equipo',
@@ -86,6 +90,15 @@ class ServicioController extends Controller
             'costo_real' => 'nullable|numeric',
             'validado_por_gerente' => 'boolean',
         ]);
+
+        if (!$estadoAnterior && $servicio->validado_por_gerente) {
+            \App\Models\Garantia::create([
+                'id_servicio' => $servicio->id_servicio,
+                'fecha_inicio' => now(),
+                'fecha_fin' => now()->addMonths(6),
+                'estado' => 'Activa',
+            ]);
+        }
 
         $servicio->update($request->all());
         $user = auth()->user();

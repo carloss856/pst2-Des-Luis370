@@ -101,14 +101,18 @@ const SolicitudesRepuestosList = () => {
                             return (
                                 <tr key={solicitud.id_solicitud} className="text-center">
                                     <td>{repuesto ? repuesto.nombre_repuesto : "N/A"}</td>
-                                    <td>{servicio ? servicio.problema_reportado : "N/A"}</td>
+                                    <td>{servicio ? servicio.problema_reportado : "N/A"} - {servicio ? servicio.codigo_rma : "N/A"}</td>
                                     <td>{new Date(solicitud.fecha_solicitud).toLocaleDateString()}</td>
                                     <td>{solicitud.cantidad_solicitada}</td>
                                     <td>{solicitud.estado_solicitud}</td>
                                     <td>{solicitud.comentarios || "N/A"}</td>
                                     <td>{usuario ? usuario.nombre : "N/A"}</td>
-                                    <td className="d-flex flex-row justify-content-center align-items-center h-100 bg-white" style={{ minHeight: "70px" }}>
-                                        {(userRol === "Administrador" || userRol === "Gerente" || String(solicitud.id_usuario) === String(userId)) ? (
+                                    <td
+                                        className="d-flex flex-row justify-content-center align-items-center h-100 bg-white"
+                                        style={{ minHeight: "70px" }}
+                                    >
+                                        {(userRol === "Administrador" || userRol === "Gerente" || String(solicitud.id_usuario) === String(userId)) &&
+                                            (solicitud.estado_solicitud !== "Rechazada" && solicitud.estado_solicitud !== "Aprobada") ? (
                                             <>
                                                 <a
                                                     className="btn btn-sm btn-primary me-2"
@@ -118,12 +122,17 @@ const SolicitudesRepuestosList = () => {
                                                 </a>
                                                 <button
                                                     className="btn btn-sm btn-danger"
-                                                    onClick={() => { setSolicitudAEliminar(solicitud.id_solicitud); setConfirmOpen(true); }}
+                                                    onClick={() => {
+                                                        setSolicitudAEliminar(solicitud.id_solicitud);
+                                                        setConfirmOpen(true);
+                                                    }}
                                                 >
                                                     Eliminar
                                                 </button>
                                             </>
-                                        ) : null}
+                                        ) : (
+                                            <span className="text-muted fst-italic">Sin acciones</span>
+                                        )}
                                     </td>
                                 </tr>
                             );

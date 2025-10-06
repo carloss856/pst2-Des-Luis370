@@ -86,12 +86,22 @@ function SolicitudesRepuestosEditForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
+
         if (excedeCantidad) return;
+
         try {
             await updateSolicitud(id, form);
             navigate("/solicitudes-repuestos");
         } catch (err) {
-            setError("Error al actualizar la solicitud");
+
+            const msg =
+                err.response?.data?.error ||
+                (err.response?.data?.errors
+                    ? Object.values(err.response.data.errors).flat().join(", ")
+                    : "Error al actualizar la solicitud");
+
+            setError(msg);
         }
     };
 
