@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ModalConfirm from "../ModalConfirm";
 import ModalAlert from "../ModalAlert";
 import { getServicios } from "../../services/servicios";
 import { getGarantias, deleteGarantia } from "../../services/garantias"; // ← asegúrate de tener este servicio
+import { canModule, getRbacCache } from "../../utils/rbac";
+import LoadingView from "../LoadingView";
 
 const GarantiasList = () => {
+  const navigate = useNavigate();
   const [servicios, setServicios] = useState([]);
   const [garantias, setGarantias] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +17,10 @@ const GarantiasList = () => {
   const [alert, setAlert] = useState({ type: "", message: "" });
   const userId = localStorage.getItem("id_usuario");
   const userRol = localStorage.getItem("rol_usuario");
+
+  const rbac = getRbacCache();
+  const canEdit = canModule(rbac, 'garantias', 'update');
+  const canDelete = canModule(rbac, 'garantias', 'destroy');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,12 +55,7 @@ const GarantiasList = () => {
     }
   };
 
-  if (loading)
-    return (
-      <div className="d-flex justify-content-center align-items-center h-100">
-        Cargando...
-      </div>
-    );
+  if (loading) return <LoadingView message="Cargando garantías…" />;
 
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center h-100">
@@ -72,7 +74,7 @@ const GarantiasList = () => {
               <th>Fecha Fin</th>
               <th>Observaciones</th>
               <th>Validado</th>
-              <th>Acciones</th>
+              {(canEdit || canDelete) && <th>Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -81,15 +83,18 @@ const GarantiasList = () => {
                 (s) => s.id_servicio === garantia.id_servicio
               );
 
-              const puedeEditar =
+              const puedeEditarPorNegocio =
                 (userRol === "Administrador" ||
                   userRol === "Gerente" ||
                   String(garantia.id_usuario) === String(userId)) &&
                 garantia.validado_por_gerente;
 
-              const puedeEliminar =
+              const puedeEliminarPorNegocio =
                 (userRol === "Administrador" || userRol === "Gerente") &&
                 garantia.validado_por_gerente;
+
+              const puedeEditar = canEdit && puedeEditarPorNegocio;
+              const puedeEliminar = canDelete && puedeEliminarPorNegocio;
 
               return (
                 <tr
@@ -105,36 +110,35 @@ const GarantiasList = () => {
                   <td>{garantia.fecha_fin}</td>
                   <td>{garantia.observaciones || ""}</td>
                   <td>{garantia.validado_por_gerente ? "Sí" : "No"}</td>
-                  <td
-                    className="bg-white text-center"
-                    style={{ minWidth: "120px" }}
-                  >
-                    {(puedeEditar || puedeEliminar) ? (
-                      <div className="d-flex flex-row justify-content-center align-items-center gap-2">
-                        {puedeEditar && (
-                          <a
-                            href={`/garantias/${garantia.id_garantia}/editar`}
-                            className="btn btn-primary btn-sm"
-                          >
-                            Editar
-                          </a>
-                        )}
-                        {puedeEliminar && (
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => {
-                              setGarantiaAEliminar(garantia.id_garantia);
-                              setConfirmOpen(true);
-                            }}
-                          >
-                            Eliminar
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-muted">Sin acciones</span>
-                    )}
-                  </td>
+                  {(canEdit || canDelete) && (
+                    <td>
+                      {(puedeEditar || puedeEliminar) ? (
+                        <>
+                          {puedeEditar && (
+                            <button
+                              className="btn btn-primary btn-sm me-2 mb-2"
+                              onClick={() => navigate(`/garantias/${garantia.id_garantia}/editar`)}
+                            >
+                              Editar
+                            </button>
+                          )}
+                          {puedeEliminar && (
+                            <button
+                              className="btn btn-danger btn-sm mb-2"
+                              onClick={() => {
+                                setGarantiaAEliminar(garantia.id_garantia);
+                                setConfirmOpen(true);
+                              }}
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-muted">Sin acciones</span>
+                      )}
+                    </td>
+                  )}
                 </tr>
               );
             })}

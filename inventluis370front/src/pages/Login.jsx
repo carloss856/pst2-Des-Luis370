@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../services/api';
 import logo from "../assets/Logo_Luis370.png";
+import FloatingInput from "../components/FloatingInput";
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -14,7 +15,8 @@ export default function Login({ onLogin }) {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('id_usuario', res.data.usuario.id_persona);
       localStorage.setItem('nombre_usuario', res.data.usuario.nombre);
-      localStorage.setItem('rol_usuario', res.data.usuario.tipo);
+      const rol = res?.data?.usuario?.tipo ?? res?.data?.usuario?.rol ?? '';
+      localStorage.setItem('rol_usuario', rol);
       onLogin && onLogin();
     } catch (err) {
       if (err.response && err.response.data && err.response.data.message) {
@@ -27,38 +29,30 @@ export default function Login({ onLogin }) {
 
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center h-100">
-      <img className='mb-4' src={logo} alt="Logo" style={{ maxWidth: 600, marginBottom: 20, borderRadius: 20 }} />
-      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 350, width: "100%" }}>
+      <img className='mb-4' src={logo} alt="Logo" style={{ maxWidth: 420, marginBottom: 20, borderRadius: 20, width: '100%' }} />
+      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 420, width: "100%" }}>
         <h2 className="text-center mb-4">Iniciar sesión</h2>
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">Correo</label>
-          <input
-            type="email"
-            id="email"
-            className="form-control"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="Correo"
-            required
-            autoComplete="username"
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="contrasena" className="form-label">Contraseña</label>
-          <input
-            type="password"
-            id="contrasena"
-            className="form-control"
-            value={contrasena}
-            onChange={e => setContrasena(e.target.value)}
-            placeholder="Contraseña"
-            required
-            autoComplete="current-password"
-          />
-        </div>
+        <FloatingInput
+          id="email"
+          label="Correo"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+          autoComplete="username"
+        />
+        <FloatingInput
+          id="contrasena"
+          label="Contraseña"
+          type="password"
+          value={contrasena}
+          onChange={e => setContrasena(e.target.value)}
+          required
+          autoComplete="current-password"
+        />
         <button type="submit" className="btn btn-primary w-100 mb-2">Iniciar sesión</button>
         {error && <div className="alert alert-danger mt-2">{error}</div>}
-        <button className="btn btn-link" onClick={() => (window.location.href = "/forgot-password")}>
+        <button type="button" className="btn btn-link" onClick={() => (window.location.href = "/forgot-password")}>
           ¿Olvidaste tu contraseña?
         </button>
       </form>

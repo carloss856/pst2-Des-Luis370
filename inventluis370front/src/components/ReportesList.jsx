@@ -11,6 +11,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { createReporte } from "../services/reportes";
 
 const entidades = [
   { key: "usuarios", label: "Usuarios", getData: getUsuarios, columns: ["ID_persona", "Nombre", "Email", "Telefono", "Tipo"], idField: "id_persona" },
@@ -30,6 +31,46 @@ export default function Reportes() {
   const [visibles, setVisibles] = useState({});
   const [repuestos, setRepuestos] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+
+  const moduleKeyOf = (key) => {
+    // moduleKeys oficiales para sincronización Web↔Android
+    if (key === 'solicitudes') return 'solicitud-repuestos';
+    return key;
+  };
+
+  const buildReportePayload = (tipo) => {
+    const selected = {};
+    const modules = [];
+
+    entidades.forEach((entidad) => {
+      if (!visibles[entidad.key]) return;
+      const ids = seleccion?.[entidad.key] || [];
+      if (!Array.isArray(ids) || ids.length === 0) return;
+
+      const mKey = moduleKeyOf(entidad.key);
+      modules.push(mKey);
+      selected[mKey] = ids;
+    });
+
+    return {
+      tipo_reporte: tipo,
+      id_usuario: localStorage.getItem('id_usuario') || undefined,
+      parametros_utilizados: {
+        modules,
+        filters: { selectedIdsByModule: selected },
+        source: 'web',
+      },
+    };
+  };
+
+  const tryRegisterReporte = async (tipo) => {
+    try {
+      const payload = buildReportePayload(tipo);
+      await createReporte(payload);
+    } catch {
+      // Best-effort: no bloquear exportación si falla el registro.
+    }
+  };
 
   useEffect(() => {
     getRepuestos().then(setRepuestos);
@@ -92,6 +133,7 @@ export default function Reportes() {
   );
 
   const exportarExcel = () => {
+    tryRegisterReporte('export_excel');
     const wb = XLSX.utils.book_new();
     entidades.forEach(entidad => {
       if (visibles[entidad.key] && seleccion[entidad.key]?.length > 0) {
@@ -135,6 +177,7 @@ export default function Reportes() {
   };
 
   const exportarPDF = () => {
+    tryRegisterReporte('export_pdf');
     const doc = new jsPDF();
     let y = 10;
     entidades.forEach(entidad => {

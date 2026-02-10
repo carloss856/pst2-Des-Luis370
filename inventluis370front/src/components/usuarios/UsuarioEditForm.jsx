@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getUsuario, updateUsuario } from '../../services/usuarios';
 import { getEmpresas } from '../../services/empresas';
 import { useNavigate, useParams } from 'react-router-dom';
+import LoadingView from "../LoadingView";
 
 
 export default function UsuarioEditForm() {
@@ -43,7 +44,7 @@ export default function UsuarioEditForm() {
       setForm(prev => ({
         ...prev,
         tipo: value,
-        id_empresa: value === "Empresa" && value === "Cliente" ? prev.id_empresa : ""
+        id_empresa: value === "Empresa" ? prev.id_empresa : ""
       }));
     } else {
       setForm(prev => ({
@@ -67,15 +68,11 @@ export default function UsuarioEditForm() {
     }
   };
 
-  if (loading) return (
-    <div className="d-flex justify-content-center align-items-center h-100">
-      Cargando...
-    </div>
-  );
+  if (loading) return <LoadingView message="Cargando usuario…" />;
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 400, width: "100%" }}>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "80%", width: "100%" }}>
         <h2 className="text-center mb-4">Editar Usuario</h2>
         <div className="mb-3">
           <label className="form-label">Nombre</label>

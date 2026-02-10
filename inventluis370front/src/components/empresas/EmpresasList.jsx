@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import ModalConfirm from "../ModalConfirm";
 import ModalAlert from "../ModalAlert";
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getEmpresas, deleteEmpresa } from '../../services/empresas';
+import { canModule, getRbacCache } from '../../utils/rbac';
+import LoadingView from "../LoadingView";
 
 export default function EmpresasList() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [empresaAEliminar, setEmpresaAEliminar] = useState(null);
   const [empresas, setEmpresas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({ type: "", message: "" });
+
+  const rbac = getRbacCache();
+  const canCreate = canModule(rbac, 'empresas', 'store');
+  const canEdit = canModule(rbac, 'empresas', 'update');
+  const canDelete = canModule(rbac, 'empresas', 'destroy');
 
   useEffect(() => {
     getEmpresas()
@@ -43,11 +51,7 @@ export default function EmpresasList() {
     setEmpresaAEliminar(null);
   };
 
-  if (loading) return (
-    <div className="d-flex justify-content-center align-items-center h-100">
-      Cargando...
-    </div>
-  );
+  if (loading) return <LoadingView message="Cargando empresas…" />;
 
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center h-100">
@@ -61,7 +65,7 @@ export default function EmpresasList() {
               <th>Dirección</th>
               <th>Teléfono</th>
               <th>Email</th>
-              <th>Acciones</th>
+              {(canEdit || canDelete) && <th>Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -71,16 +75,29 @@ export default function EmpresasList() {
                 <td>{empresa.direccion}</td>
                 <td>{empresa.telefono}</td>
                 <td>{empresa.email}</td>
-                <td>
-                  <a className="btn btn-sm btn-primary me-2" href={`/empresas/${empresa.id_empresa}/editar`}>Editar</a>
-                  <button className="btn btn-sm btn-danger" onClick={() => { setEmpresaAEliminar(empresa.id_empresa); setConfirmOpen(true); }}>Eliminar</button>
-                </td>
+                {(canEdit || canDelete) && (
+                  <td>
+                    {canEdit && (
+                      <button className="btn btn-sm btn-primary mb-2" onClick={() => navigate(`/empresas/${empresa.id_empresa}/editar`)}>
+                        Editar
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => { setEmpresaAEliminar(empresa.id_empresa); setConfirmOpen(true); }}
+                      >
+                        Eliminar
+                      </button>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <a className="btn btn-success mt-3" href="/empresas/crear">Crear empresa</a>
+      {canCreate && <Link className="btn btn-success mt-3" to="/empresas/crear">Crear empresa</Link>}
       <ModalConfirm
         show={confirmOpen}
         title="Eliminar empresa"

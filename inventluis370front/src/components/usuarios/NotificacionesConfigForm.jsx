@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
+import LoadingView from "../LoadingView";
 
 const TIPOS = [
   { value: "servicios", label: "Servicios" },
@@ -8,6 +9,7 @@ const TIPOS = [
   { value: "equipos", label: "Equipos" },
   { value: "empresa", label: "Empresas" },
   { value: "inventario", label: "Inventario" },
+  { value: "garantias", label: "Garantías" },
   { value: "reportes", label: "Reportes" },
   { value: "usuarios", label: "Usuarios" },
   { value: "notificaciones", label: "Notificaciones generales" },
@@ -51,11 +53,11 @@ export default function NotificacionesConfigForm() {
     }
   };
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) return <LoadingView message="Cargando configuración…" />;
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
-      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 400, width: "100%" }}>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "80%", width: "100%" }}>
         <h4 className="mb-3 text-center">Configuración de notificaciones</h4>
         <div className="form-check form-switch mb-3">
           <input

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getGarantia, updateGarantia } from '../../services/garantias';
 import { getServicios } from '../../services/servicios';
+import LoadingView from "../LoadingView";
 
 export default function GarantiaEditForm() {
   const { id } = useParams();
@@ -72,11 +73,11 @@ export default function GarantiaEditForm() {
     }
   };
 
-  if (loading) return <div className="text-center mt-5">Cargando...</div>;
+  if (loading) return <LoadingView message="Cargando garantía…" />;
 
   return (
     <div className="container d-flex justify-content-center align-items-center h-100">
-      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 400, width: "100%" }}>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "80%", width: "100%" }}>
         <h2 className="text-center mb-4">Editar Garantía</h2>
         {/* Servicio */}
         <div className="mb-3">

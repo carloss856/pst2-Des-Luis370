@@ -1,20 +1,57 @@
 import React, { useEffect, useState } from "react";
-import { getNotificaciones } from '../services/notificaciones';
+import { getNotificaciones, marcarTodasLeidas, setNotificacionLeida } from '../services/notificaciones';
 
 const NotificacionesList = () => {
   const [notificaciones, setNotificaciones] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [markingAll, setMarkingAll] = useState(false);
+  const [updatingId, setUpdatingId] = useState(null);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
+
+  const unreadCount = notificaciones.reduce((acc, n) => acc + (n?.leida ? 0 : 1), 0);
 
   useEffect(() => {
     const fetchNotificaciones = async () => {
       const data = await getNotificaciones();
-      setNotificaciones(data);
+      setNotificaciones(Array.isArray(data) ? data : (data?.data || []));
       setLoading(false);
     };
     fetchNotificaciones();
   }, []);
+
+  const handleMarkAll = async () => {
+    try {
+      setMarkingAll(true);
+      await marcarTodasLeidas();
+      setNotificaciones(prev => prev.map(n => ({ ...n, leida: true, leida_en: n.leida_en || new Date().toISOString() })));
+    } finally {
+      setMarkingAll(false);
+    }
+  };
+
+  const handleRowClick = async (n) => {
+    if (!n?.id_notificacion) return;
+    if (n.leida) return;
+    try {
+      setUpdatingId(n.id_notificacion);
+      const updated = await setNotificacionLeida(n.id_notificacion, true);
+      setNotificaciones(prev => prev.map(x => (x.id_notificacion === n.id_notificacion ? { ...x, ...updated } : x)));
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const toggleLeida = async (n) => {
+    if (!n?.id_notificacion) return;
+    try {
+      setUpdatingId(n.id_notificacion);
+      const updated = await setNotificacionLeida(n.id_notificacion, !Boolean(n.leida));
+      setNotificaciones(prev => prev.map(x => (x.id_notificacion === n.id_notificacion ? { ...x, ...updated } : x)));
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const totalPages = Math.ceil(notificaciones.length / perPage);
   const paginated = notificaciones.slice((page - 1) * perPage, page * perPage);
@@ -86,6 +123,7 @@ const NotificacionesList = () => {
               <tr className="text-center">
                 {/* <th>ID</th>
                 <th>ID Servicio</th> */}
+                <th>Leída</th>
                 <th>Email Destinatario</th>
                 <th>Asunto</th>
                 <th>Mensaje</th>
@@ -95,9 +133,26 @@ const NotificacionesList = () => {
             </thead>
             <tbody>
               {paginated.map((n) => (
-                <tr key={n.id_notificacion} className="text-center">
+                <tr
+                  key={n.id_notificacion}
+                  className={`text-center ${n.leida ? '' : 'table-warning'}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => handleRowClick(n)}
+                  title={n.leida ? 'Notificación leída' : 'Click para marcar como leída'}
+                >
                   {/* <td>{n.id_notificacion}</td>
                   <td>{n.id_servicio}</td> */}
+                  <td>
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${n.leida ? 'btn-outline-secondary' : 'btn-success'}`}
+                      onClick={(e) => { e.stopPropagation(); toggleLeida(n); }}
+                      disabled={updatingId === n.id_notificacion}
+                      title={n.leida ? 'Marcar como no leída' : 'Marcar como leída'}
+                    >
+                      {n.leida ? 'Sí' : 'No'}
+                    </button>
+                  </td>
                   <td>{n.email_destinatario}</td>
                   <td>{n.asunto}</td>
                   <td>{n.mensaje}</td>
@@ -109,8 +164,16 @@ const NotificacionesList = () => {
           </table>
         </div>
       )}
-      <div className="d-flex justify-content-between align-items-center mb-2">
+      <div className="d-flex justify-content-between align-items-center mb-2" style={{ width: '100%' }}>
         <div className="me-5">
+          <button
+            type="button"
+            className="btn btn-primary me-3"
+            onClick={handleMarkAll}
+            disabled={markingAll || notificaciones.length === 0 || unreadCount === 0}
+          >
+            {markingAll ? 'Marcando…' : 'Leer todas'}
+          </button>
           <label className="me-2">Mostrar:</label>
           <select className="form-select d-inline-block w-auto" value={perPage} onChange={e => { setPerPage(Number(e.target.value)); setPage(1); }}>
             <option value={5}>5</option>

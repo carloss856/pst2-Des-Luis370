@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Inventario extends Model
 {
+    protected $connection = 'mongodb';
+    protected $collection = 'inventario';
     protected $table = 'inventario';
     protected $primaryKey = 'id_entrada';
-    public $incrementing = true;
+    public $incrementing = false;
     public $timestamps = false;
 
     protected $fillable = [
+        'id_entrada',
         'id_repuesto',
         'cantidad_entrada',
         'fecha_entrada',

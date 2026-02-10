@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getRMAs } from '../../services/rma';
 import { getUsuarios } from '../../services/usuarios';
 import { getEquipos } from '../../services/equipos';
+import ServicePartsPanel from '../../components/ServicePartsPanel';
 
 const ServicioEditForm = () => {
   const { id } = useParams();
@@ -69,8 +70,8 @@ const ServicioEditForm = () => {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-      <form onSubmit={handleSubmit} className="card p-4" style={{ width: 450 }}>
+    <div className="container py-4">
+      <form onSubmit={handleSubmit} className="card p-4 mx-auto" style={{ width: "100%", maxWidth: "80%" }}>
         <h2 className="text-center mb-4">Editar Servicio</h2>
         <div className="mb-3">
           <label className="form-label">Equipo</label>
@@ -167,7 +168,7 @@ const ServicioEditForm = () => {
           >
             <option value="" disabled>Seleccione un estado</option>
             <option value="Pendiente">Pendiente</option>
-            <option value="En Proceso">En Proceso</option>
+            <option value="En proceso">En proceso</option>
             <option value="Finalizado">Finalizado</option>
           </select>
         </div>
@@ -213,10 +214,22 @@ const ServicioEditForm = () => {
             </label>
           </div>
         )}
-        <button type="submit" className="btn btn-primary w-100 mb-2">Actualizar</button>
-        <button type="button" className="btn btn-secondary w-100" onClick={() => navigate('/servicios')}>Volver</button>
+        <div className="d-grid gap-2 mt-2">
+          <button type="submit" className="btn btn-primary">Actualizar</button>
+          <button type="button" className="btn btn-secondary" onClick={() => navigate('/servicios')}>Volver</button>
+        </div>
         {error && <div className="alert alert-danger mt-3">{error}</div>}
       </form>
+      {(rol === 'Administrador' || rol === 'Gerente' || rol === 'Técnico') && (
+        <div className="mt-4">
+          <ServicePartsPanel servicioId={id} />
+          <div className="text-end mt-2">
+            <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => navigate(`/servicios/${id}/partes`)}>
+              Abrir en página completa
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

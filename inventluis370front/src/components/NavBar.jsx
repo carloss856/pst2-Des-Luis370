@@ -4,6 +4,7 @@ import {
   Divider, IconButton
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import DashboardIcon from "@mui/icons-material/Dashboard";
 import BusinessIcon from "@mui/icons-material/Business";
 import PeopleIcon from "@mui/icons-material/People";
 import BuildIcon from "@mui/icons-material/Build";
@@ -11,32 +12,49 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import ReportIcon from "@mui/icons-material/Assessment";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import LogoutIcon from "@mui/icons-material/Logout";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import { Link, useLocation } from "react-router-dom";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import logo from "../assets/Logo_Luis370.png";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { canModule, canRoute } from "../utils/rbac";
 
 
-function SidebarContent({ location, rol, handleLogout, onClose }) {
-  const commonLinks = [
-    { to: "/empresas", label: "Empresas", icon: <BusinessIcon /> },
-    { to: "/equipos", label: "Equipos", icon: <BuildIcon /> },
-    { to: "/repuestos", label: "Repuestos", icon: <InventoryIcon /> },
-    { to: "/servicios", label: "Servicios", icon: <BuildIcon /> },
-    { to: "/solicitudes-repuestos", label: "Solicitudes de Repuestos", icon: <BuildIcon /> },
-    { to: "/notificaciones", label: "Notificaciones", icon: <NotificationsIcon /> },
+function SidebarContent({ location, rol, handleLogout, onClose, rbac, rbacLoading }) {
+  const linksGeneral = [
+    { to: "/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
+    { to: "/empresas", label: "Empresas", icon: <BusinessIcon />, module: 'empresas' },
+    { to: "/equipos", label: "Equipos", icon: <BuildIcon />, module: 'equipos' },
+    { to: "/repuestos", label: "Repuestos", icon: <InventoryIcon />, module: 'repuestos' },
+    { to: "/inventario", label: "Inventario", icon: <InventoryIcon />, module: 'inventario' },
   ];
-  const adminLinks = [
-    { to: "/inventario", label: "Inventario", icon: <InventoryIcon /> },
-    { to: "/garantias", label: "Garantías", icon: <BuildIcon /> },
-    { to: "/reportes", label: "Reportes", icon: <ReportIcon /> },
-    { to: "/usuarios", label: "Usuarios del Sistema", icon: <PeopleIcon /> },
+
+  const linksTecnicos = [
+    { to: "/servicios", label: "Servicios", icon: <BuildIcon />, module: 'servicios' },
+    { to: "/solicitudes-repuestos", label: "Solicitudes de Repuestos", icon: <BuildIcon />, module: 'solicitud-repuestos' },
+    { to: "/garantias", label: "Garantías", icon: <BuildIcon />, module: 'garantias' },
+  ];
+
+  const linksAdministracion = [
+    { to: "/usuarios", label: "Usuarios del Sistema", icon: <PeopleIcon />, module: 'usuarios' },
+    { to: "/notificaciones", label: "Notificaciones", icon: <NotificationsIcon />, module: 'notificaciones' },
+    { to: "/tarifas-servicio", label: "Tarifas de Servicio", icon: <BuildIcon />, module: 'tarifas-servicio' },
+    { to: "/reportes", label: "Reportes", icon: <ReportIcon />, module: 'reportes' },
+    { to: "/permisos", label: "Permisos", icon: <AdminPanelSettingsIcon />, routeName: 'permissions.index' },
   ];
   const user = localStorage.getItem("nombre_usuario");
 
-  const renderLinks = (links) => links.map(link => (
+  const isLinkAllowed = (link) => {
+    if (link.to === '/dashboard') return true;
+    if (rbacLoading) return false;
+    if (link.module) return canModule(rbac, link.module, 'index');
+    if (link.routeName) return canRoute(rbac, link.routeName);
+    return false;
+  };
+
+  const renderLinks = (links) => links.filter(isLinkAllowed).map(link => (
     <ListItem key={link.to} disablePadding sx={{ width: "100%" }}>
       <ListItemButton
         component={Link}
@@ -73,24 +91,26 @@ function SidebarContent({ location, rol, handleLogout, onClose }) {
     </ListItem>
   ));
 
+  const visibleGeneral = linksGeneral.filter(isLinkAllowed);
+  const visibleTecnicos = linksTecnicos.filter(isLinkAllowed);
+  const visibleAdmin = linksAdministracion.filter(isLinkAllowed);
+
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Box sx={{ px: 2, pt: 2, pb: 1, textAlign: "center" }}>
         <img src={logo} alt="Logo" style={{ width: "100%", maxWidth: 160, objectFit: "contain" }} />
       </Box>
-      <Divider />
+      <Divider sx={{ bgcolor: 'rgba(255,255,255,0.85)' }} />
       <Box sx={{ flex: 1, overflowY: "auto" }}>
         <List sx={{ py: 1 }}>
-          {renderLinks(commonLinks)}
-          {(rol === "Administrador" || rol === "Gerente") && (
-            <>
-              <Divider sx={{ my: 1 }} />
-              {renderLinks(adminLinks)}
-            </>
-          )}
+          {renderLinks(linksGeneral)}
+          {visibleTecnicos.length > 0 && <Divider sx={{ my: 1, bgcolor: 'rgba(255,255,255,0.85)' }} />}
+          {renderLinks(linksTecnicos)}
+          {visibleAdmin.length > 0 && <Divider sx={{ my: 1, bgcolor: 'rgba(255,255,255,0.85)' }} />}
+          {renderLinks(linksAdministracion)}
         </List>
       </Box>
-      <Divider />
+      <Divider sx={{ bgcolor: 'rgba(255,255,255,0.85)' }} />
       <List sx={{ py: 0.5 }}>
         <ListItem disablePadding>
           <ListItemButton
@@ -147,7 +167,7 @@ function SidebarContent({ location, rol, handleLogout, onClose }) {
   );
 }
 
-export default function NavBar({ mobileOpen, setMobileOpen }) {
+export default function NavBar({ mobileOpen, setMobileOpen, rbac, rbacLoading }) {
   const rol = localStorage.getItem("rol_usuario");
   const location = useLocation();
   const theme = useTheme();
@@ -198,6 +218,8 @@ export default function NavBar({ mobileOpen, setMobileOpen }) {
             location={location}
             rol={rol}
             handleLogout={handleLogout}
+            rbac={rbac}
+            rbacLoading={rbacLoading}
             onClose={() => setMobileOpen(false)}
           />
         </Drawer>
@@ -223,6 +245,8 @@ export default function NavBar({ mobileOpen, setMobileOpen }) {
         location={location}
         rol={rol}
         handleLogout={handleLogout}
+        rbac={rbac}
+        rbacLoading={rbacLoading}
       />
     </Box>
   );

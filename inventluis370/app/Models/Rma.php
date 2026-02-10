@@ -1,11 +1,13 @@
 <?php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Rma extends Model
 {
+    protected $connection = 'mongodb';
+    protected $collection = 'rma';
     protected $table = 'rma';
     protected $primaryKey = 'rma';
     public $incrementing = false;

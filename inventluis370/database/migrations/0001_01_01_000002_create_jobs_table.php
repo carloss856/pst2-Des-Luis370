@@ -11,37 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('jobs', function (Blueprint $table) {
-            $table->id();
-            $table->string('queue')->index();
-            $table->longText('payload');
-            $table->unsignedTinyInteger('attempts');
-            $table->unsignedInteger('reserved_at')->nullable();
-            $table->unsignedInteger('available_at');
-            $table->unsignedInteger('created_at');
+        Schema::connection('mongodb')->create('jobs', function ($collection) {
+            $collection->index(['queue' => 1]);
+            $collection->index(['available_at' => 1]);
+            $collection->index(['created_at' => 1]);
         });
 
-        Schema::create('job_batches', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('name');
-            $table->integer('total_jobs');
-            $table->integer('pending_jobs');
-            $table->integer('failed_jobs');
-            $table->longText('failed_job_ids');
-            $table->mediumText('options')->nullable();
-            $table->integer('cancelled_at')->nullable();
-            $table->integer('created_at');
-            $table->integer('finished_at')->nullable();
+        Schema::connection('mongodb')->create('job_batches', function ($collection) {
+            $collection->index(['id' => 1], ['unique' => true]);
+            $collection->index(['name' => 1]);
+            $collection->index(['created_at' => 1]);
+            $collection->index(['finished_at' => 1]);
         });
 
-        Schema::create('failed_jobs', function (Blueprint $table) {
-            $table->id();
-            $table->string('uuid')->unique();
-            $table->text('connection');
-            $table->text('queue');
-            $table->longText('payload');
-            $table->longText('exception');
-            $table->timestamp('failed_at')->useCurrent();
+        Schema::connection('mongodb')->create('failed_jobs', function ($collection) {
+            $collection->index(['uuid' => 1], ['unique' => true]);
+            $collection->index(['failed_at' => 1]);
         });
     }
 
@@ -50,8 +35,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('jobs');
-        Schema::dropIfExists('job_batches');
-        Schema::dropIfExists('failed_jobs');
+        Schema::connection('mongodb')->drop('jobs');
+        Schema::connection('mongodb')->drop('job_batches');
+        Schema::connection('mongodb')->drop('failed_jobs');
     }
 };

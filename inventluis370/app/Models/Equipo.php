@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Equipo extends Model
 {
+    protected $connection = 'mongodb';
+    protected $collection = 'equipos';
     protected $table = 'equipos';
     protected $primaryKey = 'id_equipo';
     public $timestamps = false;
 
     protected $fillable = [
+        'id_equipo',
         'tipo_equipo',
         'marca',
         'modelo',

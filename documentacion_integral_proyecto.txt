@@ -1,0 +1,1172 @@
+INVENTLUIS370 — DOCUMENTACIÓN INTEGRAL (backend + frontend + Mongo)
+Fecha: 2026-02-05
+
+1) ¿DE QUÉ TRATA ESTE PROYECTO?
+
+Inventluis370 es un sistema de gestión para:
+- Inventario de repuestos (stock y niveles críticos).
+- Gestión de equipos (registro, marca/modelo, asignación a usuarios).
+- Servicios / reparaciones por equipo (con estados, costos y trazabilidad).
+- Solicitudes de repuestos por servicio (control de stock al aprobar).
+- Garantías asociadas a servicios (activación cuando valida gerente).
+- Notificaciones (registro en BD y envío de correo según preferencias).
+- Tarifas de mano de obra por tipo de tarea + historial.
+- Reportes básicos (registro del “reporte generado”).
+
+Arquitectura:
+- Backend: Laravel 12 + MongoDB (driver jenssegers/mongodb). API REST bajo /api.
+- Frontend: React + Vite + Axios (interceptors para Bearer token y extend).
+
+Convenciones clave del sistema:
+- Naming de campos: snake_case en API/BD (ej: id_empresa, id_persona).
+- Identificadores “de negocio” además de _id de Mongo:
+  - usuario.id_persona, empresa.id_empresa, equipo.id_equipo, servicio.id_servicio, etc.
+- Autenticación: Bearer token propio almacenado en colección tokens (hash sha256 del token plano).
+- Expiración token: expires_at; se expone a clientes via header X-Token-Expires-At.
+- Paginación opcional (dual mode): si llegan query params page/per_page devuelve {data, meta}; si no, devuelve array completo.
+
+
+2) MÓDULOS IMPLEMENTADOS (ENDPOINTS + COLECCIONES + CAMPOS)
+
+2.1 Autenticación y Sesión
+- Endpoints públicos:
+  - POST /api/register
+  - POST /api/login
+  - POST /api/password/forgot
+  - POST /api/password/verify
+  - POST /api/password/reset
+- Endpoints protegidos:
+  - POST /api/logout
+  - POST /api/token/extend
+- Colecciones:
+  - usuario (usuarios del sistema)
+  - tokens (tokens de sesión)
+  - autenticacion_usuarios (reseteo/recuperación; y registro alterno)
+- Campos relevantes:
+  - usuario:
+    - id_persona (USR-XXXXXXXX)
+    - nombre, email (único), telefono
+    - tipo (Administrador | Técnico | Gerente | Cliente | Empresa)
+    - contrasena (hash)
+    - id_empresa (si aplica)
+    - validado_por_gerente (bool)
+    - recibir_notificaciones (bool)
+    - tipos_notificacion (array)
+  - tokens:
+    - token (sha256 del token plano)
+    - tokenable_type (Usuario::class)
+    - tokenable_id (id_persona)
+    - abilities (array)
+    - last_used_at (datetime)
+    - expires_at (datetime)
+  - autenticacion_usuarios (recuperación):
+    - id_usuario, codigo_usuario
+    - email (único)
+    - token_recuperacion (hash)
+    - token_recuperacion_expires_at (datetime)
+
+Notas:
+- Login bloquea usuarios tipo Empresa (403).
+- /api/token/extend renueva 1 hora y devuelve expires_at + header X-Token-Expires-At.
+
+
+2.2 Empresas
+- Endpoints (protegidos): apiResource /api/empresas
+  - GET /empresas, POST /empresas, GET /empresas/{id}, PUT /empresas/{id}, DELETE /empresas/{id}
+- Colección: empresas
+- Campos (modelo Empresa):
+  - id_empresa (EMP-XXXXXX)
+  - nombre_empresa, direccion, telefono
+  - email (único)
+  - fecha_creacion
+- Particularidades:
+  - Al crear empresa, el backend intenta crear automáticamente un usuario tipo Empresa vinculado (usuario.tipo=Empresa, usuario.id_empresa=id_empresa).
+  - index() expone fallback de id_empresa basado en _id si faltara.
+
+
+2.3 Usuarios
+- Endpoints (protegidos): apiResource /api/usuarios
+  - GET /usuarios, POST /usuarios, GET /usuarios/{id}, PUT /usuarios/{id}, DELETE /usuarios/{id}
+- Endpoints adicionales (protegidos):
+  - GET  /api/usuarios/{id}/notificaciones
+  - POST /api/usuarios/{id}/notificaciones
+- Colección: usuario
+- Campos (modelo Usuario): ver 2.1
+- Reglas de acceso (comportamiento):
+  - Administrador/Gerente/Técnico: ven listados.
+  - Cliente: solo puede ver su propio usuario.
+  - Empresa: en general no debe listar usuarios.
+- Lógica extra:
+  - Al crear un Cliente se crea automáticamente un RMA en colección rma (rma=RMA-XXXXXXXX).
+  - Configuración de notificaciones guarda recibir_notificaciones y tipos_notificacion.
+
+
+2.4 Equipos
+- Endpoints (protegidos): apiResource /api/equipos
+- Colección: equipos
+- Campos (modelo Equipo):
+  - id_equipo (EQP-XXXXXX)
+  - tipo_equipo, marca, modelo
+  - id_persona (creador)
+- Particularidades:
+  - store requiere id_asignado (usuario) y crea/actualiza PropiedadEquipo.
+  - index() agrega id_asignado (desde PropiedadEquipo) para facilitar el front.
+  - Acceso Cliente: ve equipos creados por él o asignados a él (PropiedadEquipo).
+
+
+2.5 Propiedad de Equipos (asignación)
+- Endpoints (protegidos): apiResource /api/propiedad-equipos
+- Endpoint adicional:
+  - GET /api/propiedad-equipo/{id_equipo}  (devuelve 1 relación por equipo)
+- Colección: propiedad_equipos
+- Campos (modelo PropiedadEquipo):
+  - id_propiedad (PRP-XXXXXX)
+  - id_equipo (id_equipo)
+  - id_persona (id_persona asignado)
+
+
+2.6 Servicios (órdenes / reparaciones)
+- Endpoints (protegidos): apiResource /api/servicios
+- Endpoints adicionales (protegidos) — Partes de trabajo:
+  - GET    /api/servicios/{id}/partes
+  - POST   /api/servicios/{id}/partes
+  - PUT    /api/servicios/{id}/partes/{id_parte}
+  - DELETE /api/servicios/{id}/partes/{id_parte}
+- Colección: servicios
+- Campos (modelo Servicio):
+  - id_servicio (SRV-XXXXXX)
+  - id_equipo
+  - codigo_rma
+  - fecha_ingreso
+  - problema_reportado
+  - estado (Pendiente | En proceso | Finalizado)
+  - costo_estimado, costo_real
+  - validado_por_gerente (bool)
+  - partes_trabajo (array de objetos)
+  - costo_mano_obra (float)
+  - tiempo_total_minutos (int)
+- Partes de trabajo (estructura típica):
+  - id_parte (PAR-XXXXXX)
+  - id_tecnico (id_persona)
+  - tipo_tarea
+  - minutos
+  - notas
+  - tarifa_hora, moneda
+  - costo_linea
+  - fecha
+- Tarifación:
+  - addParte y updateParte consultan tarifas_servicio por tipo_tarea (la más reciente por vigente_desde).
+
+
+2.7 Garantías
+- Endpoints (protegidos): apiResource /api/garantias
+- Colección: garantias
+- Campos (modelo Garantia):
+  - id_garantia (GAR-XXXXXX)
+  - id_servicio
+  - fecha_inicio, fecha_fin
+  - observaciones
+  - validado_por_gerente (bool)
+- Particularidad:
+  - En ServicioController@update, si validado_por_gerente pasa de false a true, se crea garantía automática (estado/fechas por defecto).
+
+
+2.8 Repuestos
+- Endpoints (protegidos): apiResource /api/repuestos
+- Colección: repuestos
+- Campos (modelo Repuesto):
+  - id_repuesto (REP-XXXXXX)
+  - nombre_repuesto
+  - cantidad_disponible (int)
+  - costo_unitario (numeric)
+  - nivel_critico (int)
+
+
+2.9 Inventario (entradas)
+- Endpoints (protegidos): apiResource /api/inventario
+- Colección: inventario
+- Campos (modelo Inventario):
+  - id_entrada (ENTR-XXXXXX)
+  - id_repuesto
+  - cantidad_entrada
+  - fecha_entrada
+
+Regla de stock (implementada):
+- Al crear una entrada en inventario: se suma cantidad_entrada a repuestos.cantidad_disponible.
+- Al actualizar cantidad_entrada: se ajusta el stock por la diferencia (delta).
+- Al eliminar una entrada: se revierte el incremento (se resta cantidad_entrada).
+
+
+2.10 Solicitudes de Repuestos
+- Endpoints (protegidos): apiResource /api/solicitud-repuestos
+- Colección: solicitud_repuestos
+- Campos (modelo SolicitudRepuesto):
+  - id_solicitud (SOL-XXXXXX)
+  - id_repuesto
+  - id_servicio
+  - cantidad_solicitada
+  - id_usuario (id_persona)
+  - fecha_solicitud
+  - estado_solicitud (Pendiente | Aprobada | Rechazada)
+  - comentarios
+- Lógica stock:
+  - Si se crea o se actualiza a estado Aprobada: valida stock y descuenta.
+  - Si pasa de Aprobada a Rechazada: devuelve stock.
+
+
+2.11 Notificaciones
+- Endpoints (protegidos):
+  - apiResource /api/notificaciones
+  - PATCH /api/notificaciones/{id}/leida  (body: { leida: true|false } | si no envía body, asume true)
+  - POST  /api/notificaciones/marcar-todas-leidas
+- Colección: notificaciones
+- Campos (modelo Notificacion):
+  - id_notificacion (NOTIF-XXXXXXXX)
+  - id_servicio (nullable)
+  - tipo (string|null)  // usado para filtrar envío según tipos_notificacion del usuario
+  - email_destinatario
+  - asunto
+  - mensaje
+  - fecha_envio
+  - estado_envio (Enviado | Pendiente | Fallido | Omitido)
+  - leida (bool)  // por defecto false
+  - leida_en (datetime|null)
+- Particularidad:
+  - index() lista solo las notificaciones del usuario autenticado por email_destinatario.
+  - index() soporta filtros:
+    - ?leida=true|false
+    - ?solo_no_leidas=true
+  - NotificacionTrait siempre registra la notificación; el envío real se omite en local y/o por preferencias.
+  - Tipos estándar (strings) usados por el backend/Front para preferencias `tipos_notificacion`:
+    - servicios
+    - repuestos
+    - solicitudes_repuesto
+    - equipos
+    - empresa
+    - inventario
+    - garantias
+    - reportes
+    - usuarios
+    - notificaciones
+  - Nota RBAC:
+    - Las rutas PATCH /notificaciones/{id}/leida y POST /notificaciones/marcar-todas-leidas están protegidas por RolePermission.
+    - Si existe un override RBAC en BD (permission_settings key=rbac), también debe incluir las acciones `setLeida` y `markAllAsRead` en el módulo `notificaciones`.
+
+
+2.12 Reportes
+- Endpoints (protegidos): apiResource /api/reportes
+- Colección: reportes
+- Campos (modelo Reporte):
+  - id_reporte (REP-XXXXXX)
+  - tipo_reporte
+  - fecha_generacion
+  - parametros_utilizados
+  - id_usuario (id_persona)
+
+
+2.13 RMA
+- Endpoints (protegidos): apiResource /api/rma
+- Colección: rma
+- Campos (modelo Rma):
+  - rma (RMA-XXXXXX)
+  - id_persona
+  - fecha_creacion
+
+
+2.14 Tarifas de Servicio + Historial
+- Endpoints (protegidos):
+  - apiResource /api/tarifas-servicio
+  - GET /api/tarifas-servicio/{id}/historial
+- Colecciones:
+  - tarifas_servicio
+  - tarifas_servicio_historial
+- Campos (TarifaServicio):
+  - id_tarifa (TRF-XXXXXX)
+  - tipo_tarea
+  - nivel_tecnico
+  - tarifa_hora
+  - moneda
+  - activo (bool)
+  - vigente_desde, vigente_hasta
+- Campos (TarifaServicioHistorial):
+  - id_historial (HIS-XXXXXXXX)
+  - id_tarifa
+  - tipo_tarea, nivel_tecnico
+  - tarifa_hora, moneda
+  - fecha_registro
+  - id_usuario, nombre_usuario
+- Reglas:
+  - store/update/destroy restringido a Administrador/Gerente.
+  - Al cambiar tarifa_hora, se registra historial con el valor anterior.
+
+
+2.15 Mantenimiento (backfill)
+- Endpoint (protegido): POST /api/maintenance/backfill-assignments
+- Objetivo:
+  - Normaliza usuarios sin id_persona.
+  - Crea PropiedadEquipo faltante (asignando al creador del equipo).
+  - Ajusta PropiedadEquipo.id_persona si está guardado como _id.
+  - Reasigna relaciones huérfanas a un Admin/Gerente como fallback.
+
+
+2.16 Permisos por rol (RBAC)
+
+Fuente de verdad:
+- Backend aplica permisos en middleware RolePermission.
+- Matriz de permisos declarada en inventluis370/config/permissions.php.
+- Normalización de rol/tipo centralizada en App\Support\Role::normalize().
+
+Acciones estándar (apiResource) y traducción recomendada para UI:
+- index: Listar
+- show: Ver detalle
+- store: Crear
+- update: Editar
+- destroy: Eliminar
+
+Matriz de permisos por módulo (CRUD resumido):
+- tarifas-servicio: Admin (CRUD), Gerente (CRUD), Técnico (Listar/Ver), Cliente (-), Empresa (-)
+- empresas: Admin (CRUD), Gerente (Listar/Ver/Editar), Técnico (Listar/Ver), Cliente (-), Empresa (-)
+- usuarios: Admin (CRUD), Gerente (Listar/Ver/Editar), Técnico (Listar/Ver), Cliente (Listar/Ver), Empresa (-)
+- autenticacion-usuarios: Admin (CRUD), Gerente (Listar/Ver), Técnico (Listar/Ver), Cliente (Listar/Ver), Empresa (-)
+- equipos: Admin (CRUD), Técnico (Listar/Ver/Crear/Editar), Gerente (Listar/Ver), Cliente (Listar/Ver), Empresa (-)
+- propiedad-equipos: Admin (CRUD), Técnico (Listar/Ver/Crear/Editar), Gerente (Listar/Ver), Cliente (Listar/Ver), Empresa (-)
+- servicios: Admin (CRUD), Técnico (CRUD + Partes de trabajo), Gerente (Listar/Ver), Cliente (Listar/Ver), Empresa (-)
+- garantias: Admin (CRUD), Técnico (Listar/Ver/Crear/Editar), Gerente (Listar/Ver), Cliente (Listar/Ver), Empresa (-)
+- repuestos: Admin (CRUD), Técnico (Listar/Ver), Gerente (Listar/Ver), Cliente (-), Empresa (-)
+- inventario: Admin (CRUD), Técnico (Listar/Ver/Crear), Gerente (Listar/Ver), Cliente (-), Empresa (-)
+- solicitud-repuestos: Admin (CRUD), Técnico (Listar/Ver/Crear/Editar), Gerente (Listar/Ver/Editar), Cliente (Listar/Ver/Crear), Empresa (-)
+- notificaciones: Admin (CRUD), Técnico (Listar/Ver/Crear), Gerente (Listar/Ver), Cliente (Listar/Ver), Empresa (-)
+- reportes: Admin (CRUD), Gerente (CRUD), Técnico (Listar/Ver), Cliente (-), Empresa (-)
+- rma: Admin (CRUD), Técnico (Listar/Ver), Gerente (Listar/Ver), Cliente (Listar/Ver), Empresa (-)
+
+Persistencia/override (RBAC editable en BD):
+- Además del archivo config, existe un override persistido en MongoDB para poder “quitar/dar” permisos sin redeploy.
+- Colección: permission_settings (documento con key="rbac").
+- Semántica: si existe override, REEMPLAZA completamente la matriz base (modules + routes). Usar con cuidado.
+- Endpoints (protegidos, solo Admin/Gerente):
+  - GET  /api/permissions (devuelve effective + override)
+  - PUT  /api/permissions (guarda override completo)
+  - POST /api/permissions/reset (elimina override y vuelve a config base)
+- Anti-lockout: el middleware permite siempre permissions.* a Admin/Gerente para evitar bloquear el acceso por un override mal guardado.
+- Política: rutas nombradas no mapeadas se deniegan (deny-by-default) para no exponer endpoints por accidente.
+- Frontend: pantalla de administración en /permisos (solo Admin/Gerente).
+
+Rutas/acciones personalizadas (no apiResource):
+- usuarios.notifications.get: Administrador, Técnico, Gerente, Cliente
+- usuarios.notifications.set: Administrador, Técnico, Gerente
+- servicios.partes.index: Administrador, Técnico, Gerente
+- servicios.partes.store: Administrador, Técnico
+- servicios.partes.update: Administrador, Técnico, Gerente
+- servicios.partes.destroy: Administrador, Técnico, Gerente
+- tarifas-servicio.historial.index: Administrador, Gerente, Técnico
+
+Notas para el Front (botones y pantallas):
+- Si el rol NO tiene store/update/destroy para un módulo, ocultar o deshabilitar los botones Crear/Editar/Eliminar.
+- Si el rol NO tiene index, ocultar la pantalla de listado.
+- Si el rol NO tiene show, bloquear navegación a detalle (o mostrar 403 con mensaje amigable).
+
+
+2.17 Índices MongoDB (recomendados)
+
+Objetivo:
+- Acelerar búsquedas por IDs de negocio (id_persona/id_empresa/id_equipo/id_servicio/id_repuesto, etc.).
+- Evitar duplicados accidentales con índices unique.
+- Mejorar filtros frecuentes (por ejemplo, tokens, notificaciones por email, solicitudes por estado).
+
+Reglas prácticas:
+- Crear índices unique SOLO cuando el sistema realmente asume unicidad.
+- Antes de aplicar un índice unique en producción, detectar y resolver duplicados existentes.
+- TTL (Time-To-Live) es opcional para tokens; úsalo solo si está bien perder histórico.
+
+Índices recomendados por colección (nombres “de negocio”):
+
+usuario
+- unique: id_persona
+- unique: email
+- index: id_empresa (cuando aplica)
+- index: tipo (si se filtra por rol/tipo)
+
+empresas
+- unique: id_empresa
+- unique: email
+
+equipos
+- unique: id_equipo
+- index: id_persona (creador)
+
+propiedad_equipos
+- unique: id_equipo (una asignación por equipo)
+- index: id_persona (buscar equipos asignados a usuario)
+
+servicios
+- unique: id_servicio
+- index: id_equipo
+- index: estado
+
+repuestos
+- unique: id_repuesto
+
+inventario
+- unique: id_entrada
+- index: id_repuesto
+- index: fecha_entrada (si se listan entradas por rango/orden)
+
+solicitud_repuestos
+- unique: id_solicitud
+- index: id_servicio
+- index: id_repuesto
+- index: estado_solicitud
+- index: fecha_solicitud
+
+notificaciones
+- unique: id_notificacion
+- index compuesto: (email_destinatario, fecha_envio) para listados por usuario ordenados por fecha
+- index: id_servicio (si se consulta historial por servicio)
+
+tokens
+- index (o unique): token (sha256 del token plano; se busca por igualdad)
+- index: tokenable_id
+- index: expires_at
+- TTL opcional: expires_at (expireAfterSeconds: 0)
+
+Guía rápida (mongosh) para crear índices (ejemplos):
+- db.usuario.createIndex({ id_persona: 1 }, { unique: true, name: 'uniq_usuario_id_persona' })
+- db.usuario.createIndex({ email: 1 }, { unique: true, name: 'uniq_usuario_email' })
+- db.empresas.createIndex({ id_empresa: 1 }, { unique: true, name: 'uniq_empresas_id_empresa' })
+- db.empresas.createIndex({ email: 1 }, { unique: true, name: 'uniq_empresas_email' })
+- db.equipos.createIndex({ id_equipo: 1 }, { unique: true, name: 'uniq_equipos_id_equipo' })
+- db.propiedad_equipos.createIndex({ id_equipo: 1 }, { unique: true, name: 'uniq_propiedad_equipos_id_equipo' })
+- db.propiedad_equipos.createIndex({ id_persona: 1 }, { name: 'idx_propiedad_equipos_id_persona' })
+- db.servicios.createIndex({ id_servicio: 1 }, { unique: true, name: 'uniq_servicios_id_servicio' })
+- db.servicios.createIndex({ id_equipo: 1 }, { name: 'idx_servicios_id_equipo' })
+- db.servicios.createIndex({ estado: 1 }, { name: 'idx_servicios_estado' })
+- db.notificaciones.createIndex({ email_destinatario: 1, fecha_envio: -1 }, { name: 'idx_notif_email_fecha' })
+- db.tokens.createIndex({ token: 1 }, { name: 'idx_tokens_token' })
+- db.tokens.createIndex({ expires_at: 1 }, { name: 'idx_tokens_expires_at' })
+
+Detección de duplicados antes de índices unique (patrón):
+- db.<coleccion>.aggregate([
+    { $group: { _id: '$<campo>', n: { $sum: 1 } } },
+    { $match: { _id: { $ne: null }, n: { $gt: 1 } } }
+  ])
+
+Nota sobre email:
+- El índice unique es sensible a mayúsculas/minúsculas. Si se requiere unicidad case-insensitive, estandarizar email (lowercase) al guardar y/o usar collation adecuado.
+
+
+2.18 Dashboard (widgets/KPIs por rol)
+
+Objetivo:
+- Proveer un resumen rápido (KPIs) para el usuario autenticado.
+- El backend define qué widgets se muestran según rol; el frontend solo renderiza lo que recibe.
+
+Endpoint (protegido):
+- GET /api/dashboard
+
+Salida (resumen):
+- role: rol normalizado (Administrador | Gerente | Técnico | Cliente)
+- widgets: lista de claves habilitadas
+- cards: tarjetas de KPI (por ejemplo equipos.total, solicitudes.pendientes, servicios.por_estado)
+- lists: listas opcionales (por ejemplo notificaciones_recientes, repuestos_criticos)
+
+Reglas por rol (actual):
+- Administrador/Gerente/Técnico: equipos.total, servicios.por_estado, solicitudes.pendientes, repuestos.criticos, notificaciones.recientes
+- Cliente: equipos.total, servicios.por_estado (solo sus equipos), solicitudes.pendientes (solo su usuario), notificaciones.recientes
+
+
+2.19 Estadísticas (widgets por módulo: día/semana/mes/año)
+
+Objetivo:
+- Permitir que cada módulo “que genera datos” muestre una gráfica simple (conteos por periodo) en el Dashboard.
+- El backend hace la agregación; el frontend solo consume y grafica.
+
+Endpoints (protegidos):
+- GET  /api/stats/{module}?period=day|week|month|year&from=YYYY-MM-DD&to=YYYY-MM-DD
+- POST /api/stats/batch
+
+POST /api/stats/batch (payload):
+- modules: array de módulos (por ejemplo: ["servicios","solicitud-repuestos","inventario"])
+- period: day|week|month|year
+- from/to: opcional (si no se envía, se usa un rango por defecto según period)
+
+Respuesta (show):
+- module, period, from, to
+- total: suma de buckets
+- buckets: [{ label, count }]
+
+Respuesta (batch):
+- period, from, to
+- data: objeto por módulo { [module]: { total, buckets, ... } }
+
+Notas:
+- Para módulos sin campo fecha explícito, el backend agrupa usando la fecha implícita del _id de Mongo (ObjectId → timestamp).
+- Acceso Cliente: el backend aplica scoping para que las estadísticas solo consideren sus datos cuando corresponde.
+
+
+2.20 Frontend — Dashboard “Estadísticas” (React-Grid-Layout + persistencia)
+
+Objetivo UI (implementación actual en inventluis370front):
+- La pantalla /dashboard muestra un único cuadro/tarjeta llamado “Estadísticas”.
+- Dentro de ese cuadro se renderiza una grilla responsiva con:
+  - KPIs (cards) que llegan en /api/dashboard (data.cards).
+  - Listas opcionales: repuestos_criticos y notificaciones_recientes (data.lists).
+  - Tarjetas de “estadísticas por módulo” (gráficas mini) por cada módulo permitido.
+
+Librerías:
+- react-grid-layout (componente Responsive).
+- react-resizable.
+- Importante: se importan los CSS del paquete en el propio componente:
+  - import 'react-grid-layout/css/styles.css'
+  - import 'react-resizable/css/styles.css'
+
+Breakpoints / columnas:
+- Breakpoints usados (px): lg=1200, md=996, sm=768, xs=480, xxs=0
+- Columnas: 12 para todos los breakpoints.
+- rowHeight: 30
+
+Tamaños por tipo de item (w/h por breakpoint):
+- KPI: w=3(lg)/4(md)/6(sm)/12(xs/xxs), h=4
+- Listas: w=6(lg/md)/12(sm/xs/xxs), h=6
+- Módulo: w=3(lg)/4(md)/6(sm)/12(xs/xxs), h=8
+
+IDs de items (propiedad i de RGL):
+- KPIs: i = `kpi:<key>` donde <key> viene de cards[].key
+- Listas:
+  - i = list:repuestos_criticos
+  - i = list:notificaciones_recientes
+- Módulos: i = `module:<moduleKey>` (por ejemplo module:servicios)
+
+Reglas del grid (RGL):
+- isDraggable: true
+- isResizable: true
+- compactType: null (sin compactación automática)
+- preventCollision: true (evita superposición)
+- AutoSize: false
+- Restricción de arrastre: solo horizontal (durante drag se fija y=y_original).
+- draggableCancel incluye controles MUI y campos de formulario para evitar que el drag interfiera.
+
+Persistencia de layout (LocalStorage):
+- Se guarda un objeto JSON por usuario+rol con layouts por breakpoint.
+- Key:
+  - stats_rgl_unified_v1:<id_usuario>:<rol>
+  - id_usuario se lee de localStorage.id_usuario (se setea al login con id_persona)
+  - rol se lee de localStorage.rol_usuario (rol normalizado)
+- Estructura guardada:
+  {
+    "v": 1,
+    "layouts": {
+      "lg": [{"i":"kpi:equipos.total","x":0,"y":0,"w":3,"h":4}, ...],
+      "md": [...],
+      "sm": [...],
+      "xs": [...],
+      "xxs": [...]
+    },
+    "updatedAt": 1700000000000
+  }
+- Normalización:
+  - Si cambia el set de items (por rol, por datos disponibles, etc.), el front:
+    1) conserva posiciones existentes para IDs que siguen presentes,
+    2) elimina IDs ya no presentes,
+    3) agrega al final los items “nuevos” con un layout “packed” (por defecto).
+  - Clamp defensivo para que x/w no salgan de cols.
+
+Medición de ancho/alto (importante para evitar “hueco” a la derecha):
+- El Responsive Grid recibe un prop width calculado midiendo el contenedor real.
+- Se usa ResizeObserver + re-medición post-paint (RAF + timeouts cortos).
+- Detalle clave: se usa callback ref, porque el contenedor puede renderizarse condicionalmente (cuando layouts ya cargaron).
+
+RBAC (qué módulos aparecen en el Dashboard):
+- Se consulta un cache local versionado por schemaVersion:
+  - localStorage.rbac_cache_version (int)
+  - localStorage.rbac_cache_v{N} (objeto RBAC)
+- Si el RBAC aún no está disponible (null), por UX se muestran todos los módulos (no se filtra) para evitar “dashboard vacío”.
+- Si hay RBAC, se filtran módulos por permiso index: canModule(rbac, moduleKey, 'index').
+
+Datos consumidos:
+- KPIs + listas: GET /api/dashboard
+- Estadísticas por módulo (tarjetas mini): GET /api/stats/{module}
+  - En el front se usa cache “stale-while-revalidate” (ver sección 2.20.1).
+
+
+2.20.1 Frontend — Cache de requests (stats)
+
+Para reducir llamadas repetidas al backend (especialmente al cambiar period en cada tarjeta), el front implementa un cache simple con TTL:
+- Llave en LocalStorage por request: api_cache_v1:<key>
+- Estructura: { data, exp, ts }
+- Estrategia:
+  - Si el entry está fresco: devuelve data inmediato.
+  - En background puede refrescar (stale-while-revalidate) sin bloquear UI.
+- Para stats por módulo se usa key:
+  - stats:<module>:<period>:<from>:<to>
+
+
+2.21 Guía para portar a app móvil (Android/iOS)
+
+Objetivo:
+- Reproducir el Dashboard “Estadísticas” en móvil usando exactamente los mismos endpoints, permisos y (si se desea) el mismo layout persistente.
+
+Contratos de API que la app móvil debe consumir:
+- Sesión/token: igual que front (Bearer token).
+- Dashboard base:
+  - GET /api/dashboard → cards + lists (repuestos_criticos / notificaciones_recientes).
+- Estadísticas por módulo:
+  - GET /api/stats/{module}?period=day|week|month|year
+  - (Opcional) POST /api/stats/batch si en móvil prefieres pedir varias a la vez.
+
+Persistencia recomendada (equivalente a LocalStorage):
+- Guardar:
+  - token, id_usuario (id_persona), rol_usuario
+  - rbac_cache_v{N} + rbac_cache_version (si implementas RBAC cacheado)
+  - stats_rgl_unified_v1:<id_usuario>:<rol> (layout)
+- En React Native, usar AsyncStorage (o equivalente) manteniendo el mismo JSON.
+
+Layout en móvil (recomendación práctica):
+- Mantener “12 columnas” como sistema base para que el layout sea compatible.
+- Usar un solo breakpoint efectivo (por ejemplo xs) si la librería móvil no soporta breakpoints.
+- Si decides soportar drag/resize en móvil, conserva la misma forma de item: { i, x, y, w, h }.
+- Si NO soportas resize/drag:
+  - Puedes ignorar layouts guardados y renderizar en orden “packed” (mismo algoritmo que el front web) o renderizar en una lista vertical.
+
+Notas UX importantes:
+- Notificaciones recientes en web cambian entre vertical/horizontal según ancho real del contenedor.
+  - En móvil normalmente será “modo angosto” (lista vertical), salvo tablets.
+3) MEJORAS RECOMENDADAS (MÓDULO POR MÓDULO) + MÓDULOS NUEVOS
+
+3.1 Mejoras recomendadas (alto impacto)
+- Documentación/README:
+  - El README menciona PostgreSQL, pero el proyecto está configurado para MongoDB (DB_CONNECTION=mongodb). Actualizar README para reflejar Mongo (MONGO_HOST/MONGO_DATABASE).
+
+- Normalización de roles:
+  - Hay lógica repetida de normalizar rol (Administrador/Gerente/Técnico/Cliente/Empresa) en muchos controladores. Centralizar en helper o middleware para reducir bugs.
+
+- Inventario y stock:
+  - Al crear entradas en inventario (/inventario), actualmente NO se actualiza el stock de repuestos; definir regla (sumar al stock o solo registrar movimientos).
+  - En RepuestoController@store se intenta crear un documento inventario con campos que no están en Inventario::$fillable (p.ej. nombre_repuesto, cantidad_disponible, ultima_actualizacion). Esto sugiere discrepancia de esquema y puede dejar registros incompletos.
+
+- Frontend vs API (rutas):
+  - El servicio front propiedadEquipo.js usa GET /propiedadEquipo/{id}, pero el backend expone /propiedad-equipos/{id}. Verificar uso real; corregir para evitar 404.
+
+- Consistencia de IDs:
+  - Seguir estandarizando el uso de id_persona/id_empresa/id_equipo/id_servicio como IDs principales para integraciones (Android). Mantener fallback a _id solo para compatibilidad.
+
+- Índices MongoDB:
+  - Recomendar y aplicar índices (unique/lookup). Ver sección 2.17.
+
+3.2 Módulos nuevos propuestos
+- Kardex / Movimientos de inventario:
+  - Entradas, salidas, ajustes, motivo, usuario responsable, referencia (solicitud/servicio).
+
+- Auditoría y trazabilidad:
+  - Log de cambios (quién cambió qué y cuándo) en servicios, solicitudes y stock.
+
+- Dashboard / KPIs:
+  - Servicios por estado, tiempos promedio, consumo de repuestos, top fallas, costos por periodo.
+
+- Adjuntos por servicio:
+  - Fotos, documentos, evidencia; almacenamiento local/S3.
+
+- Workflow de aprobaciones:
+  - Aprobación de solicitudes de repuestos y validación de garantías con historial y comentarios.
+
+
+4) COLECCIONES MONGODB: USADAS VS NO USADAS (DEPURACIÓN)
+
+Colecciones detectadas en la BD luis370Db:
+- autenticacion_usuarios
+- cache
+- cache_locks
+- empresas
+- equipos
+- failed_jobs
+- garantias
+- inventario
+- job_batches
+- jobs
+- migrations
+- notificaciones
+- password_reset_tokens
+- pedidos
+- personal_access_tokens
+- propiedad_equipos
+- proyectos
+- reportes
+- repuestos
+- rma
+- servicios
+- sessions
+- solicitud_repuestos
+- tarifas_servicio
+- tarifas_servicio_historial
+- tokens
+- users
+- usuario
+
+Clasificación recomendada:
+A) Claramente usadas por el código (Model/Controller/validaciones):
+- autenticacion_usuarios
+- empresas
+- equipos
+- garantias
+- inventario
+- notificaciones
+- personal_access_tokens (Sanctum; aunque el auth principal es tokens)
+- propiedad_equipos
+- reportes
+- repuestos
+- rma
+- servicios
+- solicitud_repuestos
+- tarifas_servicio
+- tarifas_servicio_historial
+- tokens
+- usuario
+
+B) Colecciones “framework/infra” (pueden estar sin uso real según configuración):
+- cache, cache_locks (cache store database si se habilita)
+- sessions (session driver database si se habilita)
+- jobs, job_batches, failed_jobs (queue driver database si se habilita)
+- migrations (si se usa el sistema de migraciones; en Mongo muchas veces queda como legado)
+- users (tabla/colección default Laravel; este proyecto usa usuario)
+- password_reset_tokens (reset nativo Laravel; aquí se usa autenticacion_usuarios)
+
+C) No conectadas (no hay modelos/controladores referenciándolas):
+- pedidos
+- proyectos
+
+Sugerencia de depuración:
+- Antes de eliminar, confirmar:
+  - si hay pantallas o integraciones usando pedidos/proyectos,
+  - si los drivers de sesión/cache/queue están configurados a database en .env.
+
+
+APÉNDICE — Mapeo de Frontend a API (alto nivel)
+
+Frontend (inventluis370front) usa estos endpoints principales:
+- Login: POST /login
+- Dashboard: GET /dashboard
+- Empresas: /empresas
+- Usuarios: /usuarios + /usuarios/{id}/notificaciones
+- Equipos: /equipos
+- Inventario: /inventario
+- Servicios: /servicios + /servicios/{id}/partes
+- Repuestos: /repuestos
+- Solicitudes: /solicitud-repuestos (UI: /solicitudes-repuestos)
+- Notificaciones: /notificaciones
+- Reportes: /reportes
+- RMA: /rma
+- Tarifas: /tarifas-servicio + /tarifas-servicio/{id}/historial
+- Estadísticas: POST /stats/batch (widgets del Dashboard)
+- Permisos (Admin/Gerente): GET/PUT /permissions + POST /permissions/reset (UI: /permisos)
+=== REGISTRO DE CAMBIOS (MEJORAS IMPLEMENTADAS) ===
+
+1.1 README actualizado a especificaciones reales
+- Se corrigió el stack documentado: el proyecto usa MongoDB (no PostgreSQL) y Laravel 12.
+- Se documentaron variables reales para Mongo: DB_CONNECTION=mongodb y MONGO_HOST/MONGO_PORT/MONGO_DATABASE.
+- Se aclaró el funcionamiento real del front: VITE_API_URL o proxy /api en desarrollo.
+- Se agregó nota de RBAC: middleware RolePermission + config permissions.php.
+
+2.1 Normalización centralizada de roles
+- Se centralizó la normalización de roles/tipo en App\Support\Role::normalize().
+- Se reemplazó la lógica duplicada (map + eliminación de acentos) en controladores para usar el helper.
+- Controladores ajustados: UsuarioController, EquipoController, ServicioController, PropiedadEquipoController, SolicitudRepuestoController, RMAController y MaintenanceController.
+
+3.1 Apartado de permisos por rol (RBAC)
+- Se documentó la matriz Rol × Módulo × Acción (CRUD) y las rutas personalizadas según inventluis370/config/permissions.php.
+- Se dejó guía directa para habilitar/ocultar botones CRUD en el Front según store/update/destroy.
+
+4.1 Stock automático por entradas de inventario
+- Se implementó la regla de stock en InventarioController: crear/update/destroy ajustan repuestos.cantidad_disponible.
+- Se agregó validación para evitar que el stock quede negativo al reducir o eliminar entradas.
+
+5.1 Corrección RepuestoController@store vs Inventario::$fillable
+- Se eliminó la creación de un documento en inventario con campos fuera de esquema (nombre_repuesto, cantidad_disponible, ultima_actualizacion).
+- Ahora el inventario queda reservado para entradas reales (id_entrada, cantidad_entrada, fecha_entrada) y el stock se gestiona desde /inventario.
+
+6.1 Corrección de ruta PropiedadEquipo en frontend
+- Se corrigió el endpoint GET de PropiedadEquipo por id en el Front para usar /propiedad-equipos/{id} (apiResource real) en vez de /propiedadEquipo/{id}.
+- Se mantiene GET /propiedad-equipo/{id_equipo} para obtener la asignación por equipo.
+
+7.1 Fallback _id para IDs de usuario en asignación de equipos
+- Se agregó App\Support\BusinessId::resolve() para aceptar IDs de negocio o _id de Mongo y resolver siempre a id_*.
+- EquipoController ahora acepta id_asignado como id_persona o como _id y lo normaliza a id_persona para guardar PropiedadEquipo.
+
+8.1 Documentación de índices MongoDB
+- Se agregó la sección 2.17 con índices recomendados por colección (unique y lookup), más guía de aplicación en mongosh y detección de duplicados.
+- Se incluyó nota sobre TTL opcional para tokens y sobre unicidad de emails (case sensitivity).
+
+8.2 Aplicación de índices + normalización email lowercase
+- Se agregó el comando Artisan mongodb:indexes para normalizar emails existentes a lowercase y crear índices MongoDB recomendados de forma idempotente.
+- Se aplicó normalización a lowercase en backend (request + modelos) para que la validación y búsquedas por email no fallen si se ingresa en mayúsculas.
+
+7.2 Fallback _id para IDs de usuario en solicitudes de repuestos
+- SolicitudRepuestoController ahora acepta id_usuario como id_persona o como _id de Mongo y lo normaliza a id_persona antes de guardar/actualizar.
+- Se evita depender de validaciones exists por id_persona para mantener compatibilidad con integraciones que envían _id.
+
+7.3 Punto 7 completado: estandarización de IDs (id_* con fallback _id)
+- Se eliminó el uso de validaciones `exists:mongodb...` sobre IDs de negocio en controladores y se reemplazó por resolución con App\Support\BusinessId::resolve().
+- Inputs afectados: id_empresa, id_persona/id_usuario, id_equipo, id_servicio, id_repuesto (se acepta id_* o _id; se guarda siempre id_*).
+- Controladores ajustados: AuthController, UsuarioController, PropiedadEquipoController, ServicioController, GarantiaController, NotificacionController, InventarioController, ReporteController, RMAController, SolicitudRepuestoController.
+- BusinessId ahora soporta _id tipo ObjectId (hex 24 chars) para compatibilidad real con Mongo.
+
+9.1 Dashboard real + widgets por rol
+- Backend: se agregó GET /api/dashboard (ruta protegida + RBAC via dashboard.index) que retorna KPIs y listas según rol.
+- Frontend: se reemplazó el Dashboard placeholder por una pantalla que consume /dashboard y renderiza cards/lists.
+
+9.2 Estadísticas por módulo (día/semana/mes/año)
+- Backend: se agregaron GET /api/stats/{module} y POST /api/stats/batch para buckets por periodo.
+- Frontend: el Dashboard consume stats/batch y muestra widgets por módulo con selector de periodo.
+
+9.3 Permisos editables (override persistente) + UI
+- Backend: se agregó /api/permissions (GET/PUT) y /api/permissions/reset para persistir un override de RBAC en Mongo (permission_settings key=rbac).
+- Frontend: se agregó pantalla /permisos (solo Admin/Gerente) para editar permisos por rol/módulo y rutas personalizadas.
+
+9.4 Menú ordenado por secciones (generales / técnicos / administración)
+- Frontend: se reordenó el menú lateral para que muestre módulos generales arriba, luego un divisor, luego módulos técnicos, divisor y finalmente módulos de administración (Usuarios, Notificaciones, Tarifas y Permisos).
+- Archivo: inventluis370front/src/components/NavBar.jsx
+
+9.5 Permisos: guardado automático + carga pasiva (menos “Cargando…”)
+- Frontend: la pantalla /permisos ahora guarda automáticamente al modificar (autosave con debounce), sin necesidad de presionar “Guardar cambios” en cada ajuste.
+- Frontend: el refresco del RBAC se volvió “pasivo” cuando ya existe cache, evitando pantallas de “Cargando…” repetitivas al guardar cambios.
+- Archivos: inventluis370front/src/pages/Permissions.jsx e inventluis370front/src/App.jsx
+
+9.6 Ajustes UI Permisos + navegación SPA sin recargas
+- Frontend (Permisos): se quitó el botón “Guardar cambios” (autosave queda como mecanismo principal), se renombró “Reset” a “Configuración por defecto” y “Recargar” se dejó como botón con ícono.
+- Frontend (Permisos): el estado de guardado ahora se muestra en verde/rojo según éxito/error y se oculta automáticamente tras 10 segundos.
+- Frontend (Menú): divisores en blanco para mejor visibilidad.
+- Frontend (SPA): se reemplazaron enlaces tipo <a href> por navegación con React Router (Link) en botones de “Crear”/“Editar” para evitar recarga completa al cambiar entre módulos.
+- Archivos: inventluis370front/src/pages/Permissions.jsx, inventluis370front/src/components/NavBar.jsx y varios List components.
+
+9.7 Dashboard — “Estadísticas” unificado con React-Grid-Layout
+- Frontend: el /dashboard ahora muestra un único cuadro “Estadísticas” con una grilla interna (RGL Responsive).
+- Se soporta drag (horizontal-only), resize, y persistencia del layout por usuario+rol en LocalStorage.
+- Archivos: inventluis370front/src/pages/Dashboard.jsx, inventluis370front/src/components/dashboard/StatsSection.jsx, inventluis370front/src/components/dashboard/ModuleStatsCard.jsx
+
+9.8 Dashboard — Fix de ancho al recargar (medición del contenedor)
+- Se corrigió un caso donde el grid podía quedar con un width inicial incorrecto si el nodo a medir se montaba de forma condicional.
+- Se cambió la medición a callback ref + ResizeObserver + re-medición post-paint para que el grid siempre ocupe el ancho real.
+- Archivo: inventluis370front/src/components/dashboard/StatsSection.jsx
+
+9.9 Notificaciones — Tipos + leído/no leído + “Leer todas”
+- Backend:
+  - Se agregaron campos `tipo`, `leida` y `leida_en` a las notificaciones y se dejó `leida=false` por defecto.
+  - Se añadieron endpoints:
+    - PATCH /api/notificaciones/{id}/leida
+    - POST  /api/notificaciones/marcar-todas-leidas
+  - Seguridad: show/update/destroy validan pertenencia por email_destinatario.
+  - RBAC: se habilitaron acciones `setLeida` y `markAllAsRead` dentro del módulo `notificaciones`.
+- Frontend:
+  - En /notificaciones se agregó botón “Leer todas” y click en fila para marcar como leída.
+  - Se agregó toggle por fila para marcar leída/no leída.
+  - UX: el botón “Leer todas” se deshabilita cuando todas están leídas.
+  - Se alineó la lista de tipos (incluye `garantias`) en la configuración de notificaciones.
+- Archivos:
+  - inventluis370/app/Models/Notificacion.php
+  - inventluis370/app/Traits/NotificacionTrait.php
+  - inventluis370/app/Http/Controllers/NotificacionController.php
+  - inventluis370/routes/api.php
+  - inventluis370/config/permissions.php
+  - inventluis370front/src/services/notificaciones.js
+  - inventluis370front/src/components/NotificacionesList.jsx
+  - inventluis370front/src/components/usuarios/NotificacionesConfigForm.jsx
+
+9.10 Sincronización Web ↔ Android — Contratos estables
+- Reportes:
+  - `parametros_utilizados` ahora se persiste como JSON canónico (acepta string JSON o array/objeto; ordena keys y `modules`).
+  - Archivo: inventluis370/app/Http/Controllers/ReporteController.php
+  - Frontend: al exportar Excel/PDF en /reportes, se registra un reporte con `parametros_utilizados` como objeto `{ modules, filters, source }` (moduleKeys oficiales).
+  - `tipo_reporte` (exportaciones): valores estables `export_excel` y `export_pdf` para que Web y Android registren lo mismo.
+  - Archivos: inventluis370front/src/components/ReportesList.jsx e inventluis370front/src/services/reportes.js
+- RBAC/Permisos:
+  - `/api/rbac` y `/api/permissions` incluyen `schemaVersion` para invalidar cachés de clientes.
+  - Frontend: cache RBAC versionado por `schemaVersion` (`rbac_cache_v{N}`) para mantener sincronía con Android.
+  - Archivos: inventluis370/app/Support/PermissionsStore.php, inventluis370/app/Http/Controllers/RbacController.php, inventluis370/app/Http/Controllers/PermissionsController.php, inventluis370front/src/utils/rbac.js, inventluis370front/src/components/dashboard/StatsSection.jsx
+
+
+=== RECOMENDACIONES PARA SINCRONIZAR WEB ↔ ANDROID (implementadas) ===
+
+1) Reportes: contrato explícito de parámetros
+- Hoy /api/reportes guarda `parametros_utilizados` como string. Para que web y Android generen lo mismo, definir un JSON canónico.
+- Recomendación de payload (mismo para web/móvil):
+  {
+    "modules": ["servicios","inventario"],
+    "filters": { ... },
+    "source": "web" | "android"
+  }
+- Backend ideal: validar que parametros_utilizados sea JSON válido (o aceptar array/objeto y serializar).
+  - Implementado: el backend ahora acepta string JSON o array/objeto y lo persiste como JSON canónico (orden de keys + modules ordenado) dentro de `parametros_utilizados`.
+
+2) Permisos (RBAC): endpoint y estructura estable para clientes
+- Para la app móvil, conviene exponer siempre un endpoint estable:
+  - GET /api/permissions → { modules: { [moduleKey]: ["index","show","store","update","destroy", ...] }, routes: [...] }
+- Recomendación: Documentar moduleKeys oficiales (por ejemplo: "solicitud-repuestos" en vez de "solicitudes") y mantenerlos iguales en web y Android.
+- Recomendación: incluir versión (schemaVersion) para invalidar cachés cuando cambie la forma.
+  - Implementado: `/api/rbac` y `/api/permissions` ahora incluyen `schemaVersion` en la respuesta.
+  - Implementado (Frontend): el cache local de RBAC se versiona con `schemaVersion` (keys `rbac_cache_v{N}`) para invalidación automática.
+
+3) Dashboard/Estadísticas
+- Si se decide quitar widgets (ej: notificaciones recientes), hacerlo también en /api/dashboard para que ambos clientes se vean iguales.
+- Para KPIs, estandarizar tipos numéricos (enteros cuando aplique) y claves estables.
+
+
+2.21.1 Prompt listo para IA (Android Studio) — Kotlin + Compose (lista vertical)
+
+Copiar/pegar este prompt en la IA de Android Studio para generar la pantalla “Estadísticas” como lista vertical, con selector de periodo POR MÓDULO (igual que en web):
+
+--- INICIO PROMPT ANDROID STUDIO ---
+
+Quiero implementar en Android (Kotlin) con Jetpack Compose una pantalla llamada “Estadísticas” para Inventluis370. Debe ser una lista vertical (LazyColumn). El backend es un API REST (Laravel) bajo /api y requiere Bearer token.
+
+REQUISITOS:
+1) Endpoint dashboard base
+- GET {BASE_URL}/dashboard
+- Header: Authorization: Bearer <token>
+- Respuesta incluye (mínimo):
+  - role: String
+  - cards: array de KPIs. Cada card: { key: String, title: String, value: Any } donde value puede ser número o un objeto/map.
+  - lists: objeto opcional con:
+    - repuestos_criticos: [{ id_repuesto, nombre_repuesto, cantidad_disponible, nivel_critico }]
+    - notificaciones_recientes: [{ id_notificacion, asunto, estado_envio, fecha_envio }]
+
+2) Endpoint stats por módulo (por tarjeta)
+- GET {BASE_URL}/stats/{module}?period=day|week|month|year&from&to
+- Respuesta: { module, period, from, to, total, buckets: [{ label, count }] }
+
+3) UI (orden vertical)
+- Sección KPIs: renderizar cards (título + valor). Si value es objeto, listar pares key/value.
+- Sección “Repuestos críticos (top 10)” si existe.
+- Sección “Notificaciones recientes” si existe (lista vertical).
+- Sección “Estadísticas por módulo”: tarjetas por módulo permitido.
+
+4) Periodo POR MÓDULO (como en web)
+- Cada tarjeta de módulo tiene su propio selector: Día/Semana/Mes/Año.
+- Al cambiar el selector, SOLO se refresca esa tarjeta (no todas).
+
+5) RBAC (mostrar módulos)
+- Si NO hay RBAC disponible aún, mostrar todos los módulos (para evitar dashboard vacío).
+- Si hay RBAC, mostrar solo módulos con permiso "index".
+- Estructura RBAC esperada: { modules: { [moduleKey]: ["index","show",...] }, routes: [...] }.
+
+LISTA DE MÓDULOS (moduleKey -> title):
+- empresas -> Empresas
+- usuarios -> Usuarios
+- equipos -> Equipos
+- propiedad-equipos -> Asignaciones
+- servicios -> Servicios
+- garantias -> Garantías
+- repuestos -> Repuestos
+- inventario -> Inventario (entradas)
+- solicitud-repuestos -> Solicitudes de repuestos
+- notificaciones -> Notificaciones
+- reportes -> Reportes
+- rma -> RMA
+- tarifas-servicio -> Tarifas
+- tarifas-servicio-historial -> Historial de tarifas
+
+TECNOLOGÍAS:
+- Jetpack Compose + Material 3
+- Retrofit + OkHttp
+- Coroutines + StateFlow
+- DataStore Preferences para persistir token, id_usuario, rol_usuario y opcional rbac_cache_v1.
+- DataStore Preferences para persistir token, id_usuario, rol_usuario y opcional cache RBAC versionado (rbac_cache_v{N} + rbac_cache_version).
+- Cache en memoria con TTL de 5 minutos para stats por módulo+period (evitar llamadas repetidas).
+
+ENTREGABLES:
+A) Modelos de datos (elige kotlinx.serialization o Moshi y configura)
+B) ApiService (getDashboard, getStats)
+C) AuthInterceptor (Bearer token desde DataStore)
+D) Repositorios: DashboardRepository, StatsRepository(getStatsCached)
+E) ViewModel: periodByModule (Map<moduleKey, Period>), moduleUiState (Map<moduleKey, Loading/Error/Ok>)
+F) UI Compose:
+   - EstadisticasScreen() con LazyColumn
+   - ModuleStatsCard: título + selector + total + mini-barras (sin librerías externas; barras con Box/Row y altura proporcional)
+
+RESTRICCIONES:
+- NO usar react-grid-layout ni drag/resize (solo lista vertical).
+- No agregar pantallas extra; solo lo necesario para que compile.
+- BASE_URL configurable.
+
+Genera el código completo (paquetes sugeridos) y lista dependencias Gradle necesarias.
+
+--- FIN PROMPT ANDROID STUDIO ---
+
+
+2.21.2 PROMPT MAESTRO — Android a la par del Web (Inventluis370)
+
+Copiar/pegar este prompt en la IA de Android Studio. Objetivo: completar la app móvil para que quede funcionalmente “a la par” del proyecto web actual, usando los mismos contratos REST y respetando RBAC.
+
+--- INICIO PROMPT MAESTRO ANDROID STUDIO ---
+
+CONTEXTO
+Estoy construyendo la app móvil Android para Inventluis370. Ya existe un proyecto WEB funcionando:
+- Backend: Laravel 12 + MongoDB. API REST bajo `/api`.
+- Frontend: React + Vite + Axios.
+- Autenticación: Bearer token PROPIO (colección `tokens`, hash sha256 del token plano). No es JWT.
+- RBAC: middleware deny-by-default por nombre de ruta y módulo. La UI del web oculta pantallas/botones según `/api/rbac`.
+
+OBJETIVO
+Implementa en Android (Kotlin + Jetpack Compose) una app equivalente al Web (mismos módulos y operaciones principales), sin inventar features nuevas. La app debe:
+1) Consumir los mismos endpoints.
+2) Respetar RBAC (ocultar pantallas/acciones según permisos y también tolerar 403).
+3) Mantener sesiones con token + auto-extensión usando `X-Token-Expires-At`.
+4) Mantener un archivo de documentación interna en el proyecto Android con el log de cambios.
+
+ARCHIVO DE SEGUIMIENTO (OBLIGATORIO)
+En el proyecto Android ya existe un archivo de texto que debo mantener actualizado en cada cambio. Supón que se llama:
+`SYNC_WEB_ANDROID.txt` (si el nombre real difiere, usa el existente).
+
+REGLA: cada vez que generes o modifiques código, actualiza ese archivo agregando al final:
+- Fecha (YYYY-MM-DD) + hora
+- Resumen corto del cambio
+- Archivos Kotlin/Gradle tocados
+- Endpoints usados/afectados
+- Riesgos/notas
+- Sección `NECESARIO (WEB)` si detectas que falta algo en el backend web para que Android funcione (código/config). Si no falta nada, escribe: `NECESARIO (WEB): ninguno`.
+
+INVENTARIO ACTUAL DEL WEB (LO QUE ANDROID DEBE SOPORTAR)
+
+A) SESIÓN / AUTH
+Endpoints públicos:
+- POST `/api/register`
+- POST `/api/login` (nota: usuarios tipo `Empresa` NO pueden iniciar sesión; devuelve 403)
+- POST `/api/password/forgot`
+- POST `/api/password/verify`
+- POST `/api/password/reset`
+
+Endpoints protegidos:
+- POST `/api/logout`
+- POST `/api/token/extend`
+
+Contrato token:
+- Todas las rutas protegidas requieren `Authorization: Bearer <token>`.
+- Las respuestas pueden incluir header `X-Token-Expires-At` (ISO 8601). El cliente debe persistirlo.
+- Estrategia recomendada (igual al web): si faltan ≤5 min para expirar y no se ha extendido en los últimos ~10 min, llamar `POST /api/token/extend` en background.
+
+B) RBAC / PERMISOS
+Endpoint (protegido):
+- GET `/api/rbac` → incluye `schemaVersion` y retorna:
+  - `role`
+  - `modules`: `{ [moduleKey]: ["index","show","store","update","destroy", ...] }`
+  - `routes`: `["route.name", ...]`
+
+Gestión (Admin/Gerente):
+- GET `/api/permissions`
+- PUT `/api/permissions`
+- POST `/api/permissions/reset`
+- GET `/api/permissions/user/{id}`
+- PUT `/api/permissions/user/{id}`
+- POST `/api/permissions/user/{id}/reset`
+
+Regla clave: RBAC es deny-by-default. Si una ruta tiene nombre y no está mapeada/permitida, backend devuelve 403.
+
+C) DASHBOARD + STATS
+Protegidos:
+- GET `/api/dashboard` → `{ role, widgets, cards, lists }`
+  - lists puede incluir: `repuestos_criticos` y `notificaciones_recientes`
+- GET `/api/stats/{module}?period=day|week|month|year&from&to`
+- POST `/api/stats/batch` → `{ modules: [...], period, from?, to? }`
+
+ModuleKeys oficiales usados en stats/batch (IMPORTANTE mantener iguales en Android):
+- `empresas`, `usuarios`, `equipos`, `propiedad-equipos`, `servicios`, `garantias`, `repuestos`, `inventario`, `solicitud-repuestos`, `notificaciones`, `reportes`, `rma`, `tarifas-servicio`, `tarifas-servicio-historial`
+
+D) MÓDULOS CRUD (API)
+Todos bajo `/api` y protegidos por token+RBAC:
+- Empresas: apiResource `/empresas`
+- Usuarios: apiResource `/usuarios`
+  - Config notificaciones por usuario:
+    - GET `/usuarios/{id}/notificaciones`
+    - POST `/usuarios/{id}/notificaciones`
+- Autenticación usuarios (recuperación alterna): apiResource `/autenticacion-usuarios`
+- Equipos: apiResource `/equipos`
+- Asignaciones: apiResource `/propiedad-equipos`
+  - GET `/propiedad-equipo/{id_equipo}`
+- Servicios: apiResource `/servicios`
+  - Partes por servicio:
+    - GET `/servicios/{id}/partes`
+    - POST `/servicios/{id}/partes`
+    - PUT `/servicios/{id}/partes/{id_parte}`
+    - DELETE `/servicios/{id}/partes/{id_parte}`
+- Garantías: apiResource `/garantias`
+- Repuestos: apiResource `/repuestos`
+- Inventario (entradas): apiResource `/inventario`
+- Solicitudes repuestos: apiResource `/solicitud-repuestos`
+- Notificaciones: apiResource `/notificaciones`
+  - leído/no leído:
+    - PATCH `/notificaciones/{id}/leida` (body opcional `{ leida: true|false }`, default true)
+    - POST  `/notificaciones/marcar-todas-leidas`
+- Reportes: apiResource `/reportes`
+  - `parametros_utilizados` se guarda como JSON canónico. Android debe enviar objeto:
+    `{ modules: [...], filters: {...}, source: "android" }`
+  - Exportaciones web registran tipo_reporte: `export_excel` / `export_pdf` (Android debe usar el mismo estilo si registra acciones similares).
+- RMA: apiResource `/rma`
+- Tarifas: apiResource `/tarifas-servicio`
+  - GET `/tarifas-servicio/{id}/historial`
+- Mantenimiento (Admin/Gerente): POST `/maintenance/backfill-assignments`
+
+Notas de IDs (compatibilidad Mongo):
+- El backend acepta IDs de negocio (`id_persona`, `id_equipo`, etc.) y también `_id` (ObjectId hex 24) como fallback; pero guarda normalizado a IDs de negocio.
+
+NOTAS IMPORTANTES (DIFERENCIAS DE CLAVES)
+- `moduleKey` (RBAC/stats) usa guiones en algunos casos: `solicitud-repuestos`, `propiedad-equipos`, `tarifas-servicio`.
+- Preferencias de tipos de notificación (`tipos_notificacion`) usan strings de negocio (por ejemplo `servicios`, `repuestos`, `garantias`, `reportes`, `usuarios`, `notificaciones` y en algunos casos con underscore como `solicitudes_repuesto`). NO asumas que esto es igual a moduleKey; trátalo como un catálogo separado.
+
+REQUISITOS ANDROID (ARQUITECTURA)
+1) Stack
+- Kotlin, Jetpack Compose (Material 3)
+- Retrofit + OkHttp
+- Kotlinx Serialization (preferido) o Moshi
+- Coroutines + StateFlow
+- DataStore Preferences para token, expiresAt, usuario actual, y cache RBAC versionado.
+
+2) Networking
+- `BASE_URL` configurable (buildConfig o resources).
+- Interceptor Bearer token.
+- Interceptor para persistir `X-Token-Expires-At` y auto-extend con `/api/token/extend` siguiendo la misma lógica del web.
+- Manejo global de 401: limpiar sesión y navegar a Login.
+
+3) Cache
+- Stats: cache en memoria con TTL (5 min) por key `stats:<module>:<period>:<from>:<to>`.
+- RBAC: persistir respuesta `/api/rbac` junto a `schemaVersion`. Si cambia `schemaVersion`, invalidar cache anterior.
+
+4) UI / Navegación (paridad)
+Implementa pantallas equivalentes (mínimo):
+- Login + recuperación de contraseña (forgot/verify/reset)
+- Dashboard (cards + lists) y sección Estadísticas (stats por módulo)
+- Listados + CRUD donde aplique según RBAC:
+  - Empresas, Usuarios, Equipos, Repuestos, Inventario, Servicios, Solicitud de repuestos, Garantías, RMA, Tarifas, Reportes, Notificaciones
+- Servicios: incluir pantalla Partes de trabajo por servicio (listar/crear/editar/eliminar) si el RBAC lo permite.
+- Notificaciones: listado con estado leído/no leído + acción “Leer todas”.
+- Configuración de notificaciones del usuario (recibir_notificaciones + tipos_notificacion) usando los endpoints de usuarios.
+- Permisos (solo Admin/Gerente): pantalla para ver/editar override global y por usuario (equivalente al web).
+
+Regla RBAC UI:
+- Si NO hay RBAC cargado aún, evita dejar la app “vacía”: muestra el menú base o placeholders, pero cuando RBAC llegue aplica el filtro.
+- Para acciones: habilita/oculta botones Crear/Editar/Eliminar según `modules[moduleKey]` contiene `store/update/destroy`.
+
+ENTREGABLES (OBLIGATORIO)
+A) Estructura de paquetes sugerida (data/network/repo/ui)
+B) DataStore: AuthStore (token, expiresAt, user)
+C) ApiService completo con métodos para todos los endpoints listados
+D) Repositorios por módulo (mínimo: Auth, Rbac, Dashboard, Stats, Notificaciones, Usuarios)
+E) ViewModels + UiState por pantalla
+F) Navegación Compose (NavHost) con guards por sesión + permisos
+G) Actualización automática de `resumenweb.txt` en cada iteración de cambios (ver regla)
+
+SECCIÓN FINAL (OBLIGATORIA EN TU RESPUESTA)
+Al final de tu respuesta, escribe:
+1) `PLAN DE IMPLEMENTACIÓN` (pasos ordenados para completar paridad)
+2) `NECESARIO (WEB)` con los cambios/config que falten del lado web (si nada falta, dilo explícito)
+3) `CAMBIOS REGISTRADOS EN resumenweb.txt` mostrando el texto exacto que agregarías a ese archivo
+
+--- FIN PROMPT MAESTRO ANDROID STUDIO ---
+
+
+2.21.3 NECESARIO (WEB) PARA ANDROID — AUDITORÍA ACTUAL
+
+NECESARIO (WEB): ninguno.
+
+Notas (opcionales / mejoras, NO bloqueantes):
+- Endpoint `/api/me` (o similar) para recuperar el usuario actual si en Android se quisiera reconstruir estado solo desde el token (hoy se puede guardar el usuario devuelto por `/api/login` en DataStore y es suficiente).
+- Si Android necesitara “exportar” desde servidor (en vez de export client-side), habría que crear endpoints dedicados de exportación. Actualmente el Web exporta del lado del cliente.
+
+
+Fin del documento.

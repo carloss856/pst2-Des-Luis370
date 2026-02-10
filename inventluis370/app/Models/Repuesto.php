@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Repuesto extends Model
 {
+    protected $connection = 'mongodb';
+    protected $collection = 'repuestos';
     protected $table = 'repuestos';
     protected $primaryKey = 'id_repuesto';
     public $timestamps = false;
 
     protected $fillable = [
+        'id_repuesto',
         'nombre_repuesto',
         'cantidad_disponible',
         'costo_unitario',

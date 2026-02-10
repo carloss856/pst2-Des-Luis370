@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getRepuestos } from "../../services/repuestos";
 import { getInventario } from "../../services/inventario";
-import { useNavigate } from "react-router-dom";
+import { canModule, getRbacCache } from "../../utils/rbac";
+import LoadingView from "../LoadingView";
 
 const Inventario = () => {
   const [repuestos, setRepuestos] = useState([]);
   const [inventario, setInventario] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const rbac = getRbacCache();
+  const canCreate = canModule(rbac, 'inventario', 'store');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,11 +31,7 @@ const Inventario = () => {
     return rep ? rep.nombre_repuesto : id;
   };
 
-  if (loading) return (
-    <div className="d-flex justify-content-center align-items-center h-100">
-      Cargando...
-    </div>
-  );
+  if (loading) return <LoadingView message="Cargando inventario…" />;
 
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center h-100">
@@ -59,7 +60,7 @@ const Inventario = () => {
           </tbody>
         </table>
       </div>
-      <a className="btn btn-success mt-3" href="/inventario/crear">Agregar entrada</a>
+      {canCreate && <Link className="btn btn-success mt-3" to="/inventario/crear">Agregar entrada</Link>}
     </div>
   );
 };

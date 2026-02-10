@@ -11,29 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
+        Schema::connection('mongodb')->create('users', function ($collection) {
+            $collection->index(['email' => 1], ['unique' => true]);
+            $collection->index(['name' => 1]);
+            $collection->index(['created_at' => 1]);
         });
 
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+        Schema::connection('mongodb')->create('password_reset_tokens', function ($collection) {
+            $collection->index(['email' => 1], ['unique' => true]);
+            $collection->index(['created_at' => 1]);
         });
 
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
+        Schema::connection('mongodb')->create('sessions', function ($collection) {
+            $collection->index(['id' => 1], ['unique' => true]);
+            $collection->index(['user_id' => 1]);
+            $collection->index(['last_activity' => 1]);
         });
     }
 
@@ -42,8 +34,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
-        Schema::dropIfExists('sessions');
+        Schema::connection('mongodb')->drop('users');
+        Schema::connection('mongodb')->drop('password_reset_tokens');
+        Schema::connection('mongodb')->drop('sessions');
     }
 };

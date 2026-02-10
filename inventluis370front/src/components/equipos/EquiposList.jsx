@@ -1,17 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import ModalAlert from '../ModalAlert';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ModalConfirm from '../ModalConfirm'; // Asegúrate de tener este componente
 import { getEquipos, deleteEquipo } from '../../services/equipos';
+import { canModule, getRbacCache } from '../../utils/rbac';
+import LoadingView from "../LoadingView";
 
 const EquiposList = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [equipoAEliminar, setEquipoAEliminar] = useState(null);
   const [alert, setAlert] = useState({ type: "", message: "" });
-  const idUsuario = localStorage.getItem('id_usuario');
+
+  const rbac = getRbacCache();
+  const canCreate = canModule(rbac, 'equipos', 'store');
+  const canEdit = canModule(rbac, 'equipos', 'update');
+  const canDelete = canModule(rbac, 'equipos', 'destroy');
 
   useEffect(() => {
     getEquipos()
@@ -44,11 +51,7 @@ const EquiposList = () => {
     setEquipoAEliminar(null);
   };
 
-  if (loading) return (
-    <div className="d-flex justify-content-center align-items-center h-100">
-      Cargando...
-    </div>
-  );
+  if (loading) return <LoadingView message="Cargando equipos…" />;
 
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center h-100">
@@ -62,7 +65,7 @@ const EquiposList = () => {
               <th>Marca</th>
               <th>Modelo</th>
               <th>Usuario Asignado</th>
-              <th>Acciones</th>
+              {(canEdit || canDelete) && <th>Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -72,20 +75,26 @@ const EquiposList = () => {
                 <td>{equipo.marca}</td>
                 <td>{equipo.modelo}</td>
                 <td>{equipo.propiedad?.usuario?.nombre || "Sin asignar"}</td>
-                <td>
-                  {String(equipo.id_persona) === String(idUsuario) && (
-                    <>
-                      <a className="btn btn-sm btn-primary me-2" href={`/equipos/${equipo.id_equipo}/editar`}>Editar</a>
-                      <button className="btn btn-sm btn-danger" onClick={() => { setEquipoAEliminar(equipo.id_equipo); setConfirmOpen(true); }}>Eliminar</button>
-                    </>
-                  )}
-                </td>
+                {(canEdit || canDelete) && (
+                  <td>
+                    {canEdit && (
+                      <button className="btn btn-sm btn-primary me-2 mb-2" onClick={() => navigate(`/equipos/${equipo.id_equipo}/editar`)}>
+                        Editar
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button className="btn btn-sm btn-danger mb-2" onClick={() => { setEquipoAEliminar(equipo.id_equipo); setConfirmOpen(true); }}>
+                        Eliminar
+                      </button>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <a className="btn btn-success mt-3" href="/equipos/crear">Nuevo Equipo</a>
+      {canCreate && <Link className="btn btn-success mt-3" to="/equipos/crear">Nuevo Equipo</Link>}
       <ModalConfirm
         show={confirmOpen}
         title="Eliminar equipo"

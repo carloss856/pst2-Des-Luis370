@@ -28,7 +28,7 @@ export default function UsuarioForm() {
       setFormUsuario(prev => ({
         ...prev,
         tipo: value,
-        id_empresa: value === "Empresa" && value === "Cliente" ? prev.id_empresa : ""
+        id_empresa: value === "Empresa" ? prev.id_empresa : ""
       }));
     } else {
       setFormUsuario(prev => ({
@@ -55,7 +55,7 @@ export default function UsuarioForm() {
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 400, width: "100%" }}>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "80%", width: "100%" }}>
         <h2 className="text-center mb-4">Crear Usuario</h2>
         <div className="mb-3">
           <label className="form-label">Nombre</label>

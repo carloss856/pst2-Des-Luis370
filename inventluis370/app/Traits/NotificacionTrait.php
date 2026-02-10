@@ -5,6 +5,7 @@ namespace App\Traits;
 use App\Models\Notificacion;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Models\Servicio;
 
 trait NotificacionTrait
@@ -34,13 +35,22 @@ trait NotificacionTrait
         if ($id_servicio) {
             $servicioValido = \App\Models\Servicio::find($id_servicio);
         }
+        // En entorno local, omitir el envío de correo
+        if (app()->environment('local')) {
+            $omitirEnvioPorPreferencias = true;
+        }
+
         $notificacion = Notificacion::create([
+            'id_notificacion' => 'NOTIF-' . strtoupper(str()->random(8)),
             'id_servicio' => $servicioValido ? $id_servicio : null,
+            'tipo' => $tipo,
             'email_destinatario' => $email_usuario,
             'asunto' => mb_convert_encoding($asunto, 'UTF-8', 'UTF-8'),
             'mensaje' => mb_convert_encoding($mensaje, 'UTF-8', 'UTF-8'),
             'fecha_envio' => now(),
-            'estado_envio' => $omitirEnvioPorPreferencias ? 'Fallido' : 'Pendiente',
+            'estado_envio' => $omitirEnvioPorPreferencias ? 'Omitido' : 'Pendiente',
+            'leida' => false,
+            'leida_en' => null,
         ]);
 
         if ($omitirEnvioPorPreferencias) {
@@ -67,7 +77,7 @@ trait NotificacionTrait
                 $notificacion->update(['estado_envio' => 'Enviado']);
             }
         } catch (\Throwable $e) {
-            \Log::error('Error enviando correo de notificación: ' . $e->getMessage(), [
+            Log::error('Error enviando correo de notificación: ' . $e->getMessage(), [
                 'asunto' => $asunto,
                 'dest_to' => $to,
                 'dest_bcc' => $bcc,

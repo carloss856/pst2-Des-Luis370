@@ -54,7 +54,7 @@ export default function ResetPasswordForm() {
       <form
         onSubmit={step === 'token' ? handleVerifyToken : handleResetPassword}
         className="card p-4"
-        style={{ maxWidth:420, width:'100%' }}
+        style={{ maxWidth:'80%', width:'100%' }}
       >
         <h4 className="mb-3 text-center">
           {step === 'token' ? 'Validar token de recuperación' : 'Establecer nueva contraseña'}

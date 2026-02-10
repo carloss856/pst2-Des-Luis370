@@ -2,15 +2,23 @@ import React, { useEffect, useState } from 'react';
 import ModalConfirm from "../ModalConfirm";
 import ModalAlert from "../ModalAlert";
 import { getRepuestos, deleteRepuesto } from '../../services/repuestos';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { canModule, getRbacCache } from '../../utils/rbac';
+import LoadingView from "../LoadingView";
 
 export default function RepuestosList() {
     const location = useLocation();
+    const navigate = useNavigate();
     const [repuestos, setRepuestos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [repuestoAEliminar, setRepuestoAEliminar] = useState(null);
     const [alert, setAlert] = useState({ type: "", message: "" });
+
+    const rbac = getRbacCache();
+    const canCreate = canModule(rbac, 'repuestos', 'store');
+    const canEdit = canModule(rbac, 'repuestos', 'update');
+    const canDelete = canModule(rbac, 'repuestos', 'destroy');
 
     useEffect(() => {
         getRepuestos()
@@ -43,11 +51,7 @@ export default function RepuestosList() {
         setRepuestoAEliminar(null);
     };
 
-    if (loading) return (
-        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-            Cargando...
-        </div>
-    );
+    if (loading) return <LoadingView message="Cargando repuestos…" />;
 
     return (
         <div className="container d-flex flex-column justify-content-center align-items-center h-100">
@@ -61,7 +65,7 @@ export default function RepuestosList() {
                             <th>Cantidad</th>
                             <th>Costo</th>
                             <th>Nivel critico</th>
-                            <th>Acciones</th>
+                            {(canEdit || canDelete) && <th>Acciones</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -71,16 +75,22 @@ export default function RepuestosList() {
                                 <td>{repuesto.cantidad_disponible}</td>
                                 <td>{repuesto.costo_unitario}</td>
                                 <td>{repuesto.nivel_critico}</td>
-                                <td>
-                                    <a className="btn btn-sm btn-primary me-2" href={`/repuestos/${repuesto.id_repuesto}/editar`}>Editar</a>
-                                    <button className="btn btn-sm btn-danger" onClick={() => { setRepuestoAEliminar(repuesto.id_repuesto); setConfirmOpen(true); }}>Eliminar</button>
-                                </td>
+                                {(canEdit || canDelete) && (
+                                    <td>
+                                        {canEdit && (
+                                            <button className="btn btn-sm btn-primary me-2 mb-2" onClick={() => navigate(`/repuestos/${repuesto.id_repuesto}/editar`)}>Editar</button>
+                                        )}
+                                        {canDelete && (
+                                            <button className="btn btn-sm btn-danger mb-2" onClick={() => { setRepuestoAEliminar(repuesto.id_repuesto); setConfirmOpen(true); }}>Eliminar</button>
+                                        )}
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
-            <a className="btn btn-success mt-3" href="/repuestos/crear">Crear Repuesto</a>
+            {canCreate && <Link className="btn btn-success mt-3" to="/repuestos/crear">Crear Repuesto</Link>}
             <ModalConfirm
                 show={confirmOpen}
                 title="Confirmar Eliminación"

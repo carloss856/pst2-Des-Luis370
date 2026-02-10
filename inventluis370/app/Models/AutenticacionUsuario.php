@@ -1,15 +1,19 @@
 <?php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
+use App\Support\Email;
 
 class AutenticacionUsuario extends Model
 {
+    protected $connection = 'mongodb';
+    protected $collection = 'autenticacion_usuarios';
     protected $table = 'autenticacion_usuarios';
     protected $primaryKey = 'id_usuario';
     public $timestamps = false;
 
     protected $fillable = [
+        'id_usuario',
         'codigo_usuario',
         'email',
         'contrasena',
@@ -24,4 +28,9 @@ class AutenticacionUsuario extends Model
         'contrasena',
         'token_recuperacion',
     ];
+
+    public function setEmailAttribute($value): void
+    {
+        $this->attributes['email'] = Email::normalize(is_string($value) ? $value : (is_null($value) ? null : (string) $value));
+    }
 }

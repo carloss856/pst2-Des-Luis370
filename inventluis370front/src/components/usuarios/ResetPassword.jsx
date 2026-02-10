@@ -26,7 +26,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight:'80vh' }}>
-      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth:380, width:'100%' }}>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth:'80%', width:'100%' }}>
         <h4 className="mb-3 text-center">Recuperar contraseña</h4>
         <div className="mb-3">
           <label className="form-label">Correo</label>

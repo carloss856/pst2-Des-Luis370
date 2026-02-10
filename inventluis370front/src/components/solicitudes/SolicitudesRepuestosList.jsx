@@ -7,13 +7,16 @@ import ModalConfirm from "../ModalConfirm";
 import ModalAlert from "../ModalAlert";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { canModule, getRbacCache } from "../../utils/rbac";
+import LoadingView from "../LoadingView";
 
 const SolicitudesRepuestosList = () => {
     const [solicitudes, setSolicitudes] = useState([]);
     const [repuestos, setRepuestos] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
     const [servicios, setServicios] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [solicitudAEliminar, setSolicitudAEliminar] = useState(null);
     const [alert, setAlert] = useState({ type: "", message: "" });
@@ -22,30 +25,71 @@ const SolicitudesRepuestosList = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const [solicitudesData, repuestosData, usuariosData, serviciosData] = await Promise.all([
-                getSolicitudes(),
-                getRepuestos(),
-                getUsuarios(),
-                getServicios()
-            ]);
-            setSolicitudes(solicitudesData);
-            setRepuestos(repuestosData);
-            setUsuarios(usuariosData);
-            setServicios(serviciosData);
-            setLoading(false);
-        };
-        fetchData();
-    }, []);
+    const rbac = getRbacCache();
+    const canCreate = canModule(rbac, 'solicitud-repuestos', 'store');
+    const canEdit = canModule(rbac, 'solicitud-repuestos', 'update');
+    const canDelete = canModule(rbac, 'solicitud-repuestos', 'destroy');
+    const canListUsuarios = canModule(rbac, 'usuarios', 'index');
+    const canListRepuestos = canModule(rbac, 'repuestos', 'index');
+    const canListServicios = canModule(rbac, 'servicios', 'index');
 
     useEffect(() => {
-        getSolicitudes()
-            .then(res => {
-                setSolicitudes(res);
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const [solRes, repRes, usuRes, serRes] = await Promise.allSettled([
+                    getSolicitudes(),
+                    canListRepuestos ? getRepuestos() : Promise.resolve([]),
+                    canListUsuarios ? getUsuarios() : Promise.resolve([]),
+                    canListServicios ? getServicios() : Promise.resolve([]),
+                ]);
+
+                if (solRes.status === 'fulfilled') {
+                    setSolicitudes(Array.isArray(solRes.value) ? solRes.value : []);
+                } else {
+                    setSolicitudes([]);
+                }
+
+                if (repRes.status === 'fulfilled') setRepuestos(Array.isArray(repRes.value) ? repRes.value : []);
+                else setRepuestos([]);
+                if (usuRes.status === 'fulfilled') setUsuarios(Array.isArray(usuRes.value) ? usuRes.value : []);
+                else setUsuarios([]);
+                if (serRes.status === 'fulfilled') setServicios(Array.isArray(serRes.value) ? serRes.value : []);
+                else setServicios([]);
+
+                // Si falló lo principal (solicitudes), mostramos error.
+                if (solRes.status === 'rejected') {
+                    const status = solRes.reason?.response?.status;
+                    const msg = solRes.reason?.response?.data?.message;
+                    setAlert({
+                        type: "danger",
+                        message: `Error cargando solicitudes${status ? ` (HTTP ${status})` : ''}${msg ? `: ${msg}` : ''}.`,
+                    });
+                    return;
+                }
+
+                // Si falló alguna dependencia, no bloqueamos: solo avisamos.
+                const warnings = [];
+                if (repRes.status === 'rejected') warnings.push('Repuestos');
+                if (usuRes.status === 'rejected') warnings.push('Usuarios');
+                if (serRes.status === 'rejected') warnings.push('Servicios');
+                if (warnings.length > 0) {
+                    const firstErr = [repRes, usuRes, serRes].find((r) => r.status === 'rejected')?.reason;
+                    const status = firstErr?.response?.status;
+                    setAlert({
+                        type: "warning",
+                        message: `Solicitudes cargadas, pero no se pudieron cargar: ${warnings.join(', ')}${status ? ` (HTTP ${status})` : ''}.`,
+                    });
+                }
+            } catch (e) {
+                const status = e?.response?.status;
+                const msg = e?.response?.data?.message;
+                setAlert({ type: "danger", message: `Error cargando solicitudes${status ? ` (HTTP ${status})` : ''}${msg ? `: ${msg}` : ''}.` });
+            } finally {
                 setLoading(false);
-            })
-            .catch(() => setLoading(false));
+            }
+        };
+        fetchData();
     }, []);
 
     useEffect(() => {
@@ -70,9 +114,7 @@ const SolicitudesRepuestosList = () => {
         setSolicitudAEliminar(null);
     };
 
-    if (loading) {
-        return <div className="d-flex justify-content-center align-items-center h-100">Cargando...</div>;
-    }
+    if (loading) return <LoadingView message="Cargando solicitudes…" />;
 
     return (
         <div className="container d-flex flex-column justify-content-center align-items-center h-100">
@@ -89,7 +131,7 @@ const SolicitudesRepuestosList = () => {
                             <th>Estado</th>
                             <th>Comentarios</th>
                             <th>Usuario</th>
-                            <th>Acciones</th>
+                            {(canEdit || canDelete) && <th>Acciones</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -97,6 +139,14 @@ const SolicitudesRepuestosList = () => {
                             const repuesto = repuestos.find(r => r.id_repuesto === solicitud.id_repuesto);
                             const usuario = usuarios.find(u => u.id_persona === solicitud.id_usuario);
                             const servicio = servicios.find(s => s.id_servicio === solicitud.id_servicio);
+
+                            const puedeGestionarPorNegocio =
+                                (userRol === "Administrador" || userRol === "Gerente" || String(solicitud.id_usuario) === String(userId)) &&
+                                (solicitud.estado_solicitud !== "Rechazada" && solicitud.estado_solicitud !== "Aprobada");
+
+                            const showRowActions = (canEdit || canDelete);
+                            const showEdit = canEdit && puedeGestionarPorNegocio;
+                            const showDelete = canDelete && puedeGestionarPorNegocio;
 
                             return (
                                 <tr key={solicitud.id_solicitud} className="text-center">
@@ -107,33 +157,35 @@ const SolicitudesRepuestosList = () => {
                                     <td>{solicitud.estado_solicitud}</td>
                                     <td>{solicitud.comentarios || "N/A"}</td>
                                     <td>{usuario ? usuario.nombre : "N/A"}</td>
-                                    <td
-                                        className="d-flex flex-row justify-content-center align-items-center h-100 bg-white"
-                                        style={{ minHeight: "70px" }}
-                                    >
-                                        {(userRol === "Administrador" || userRol === "Gerente" || String(solicitud.id_usuario) === String(userId)) &&
-                                            (solicitud.estado_solicitud !== "Rechazada" && solicitud.estado_solicitud !== "Aprobada") ? (
-                                            <>
-                                                <a
-                                                    className="btn btn-sm btn-primary me-2"
-                                                    onClick={() => navigate(`/solicitudes-repuestos/${solicitud.id_solicitud}/editar`)}
-                                                >
-                                                    Editar
-                                                </a>
-                                                <button
-                                                    className="btn btn-sm btn-danger"
-                                                    onClick={() => {
-                                                        setSolicitudAEliminar(solicitud.id_solicitud);
-                                                        setConfirmOpen(true);
-                                                    }}
-                                                >
-                                                    Eliminar
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <span className="text-muted fst-italic">Sin acciones</span>
-                                        )}
-                                    </td>
+                                    {showRowActions && (
+                                        <td>
+                                            {(showEdit || showDelete) ? (
+                                                <>
+                                                    {showEdit && (
+                                                        <button
+                                                            className="btn btn-sm btn-primary me-2 mb-2"
+                                                            onClick={() => navigate(`/solicitudes-repuestos/${solicitud.id_solicitud}/editar`)}
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                    )}
+                                                    {showDelete && (
+                                                        <button
+                                                            className="btn btn-sm btn-danger mb-2"
+                                                            onClick={() => {
+                                                                setSolicitudAEliminar(solicitud.id_solicitud);
+                                                                setConfirmOpen(true);
+                                                            }}
+                                                        >
+                                                            Eliminar
+                                                        </button>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <span className="text-muted fst-italic">Sin acciones</span>
+                                            )}
+                                        </td>
+                                    )}
                                 </tr>
                             );
                         })}
@@ -145,7 +197,7 @@ const SolicitudesRepuestosList = () => {
                     </tfoot>
                 </table>
             </div>
-            <a className="btn btn-success mt-3" href="/solicitudes-repuestos/crear">Nueva Solicitud de Repuesto</a>
+            {canCreate && <Link className="btn btn-success mt-3" to="/solicitudes-repuestos/crear">Nueva Solicitud de Repuesto</Link>}
             <ModalConfirm
                 show={confirmOpen}
                 title="Eliminar Solicitud"

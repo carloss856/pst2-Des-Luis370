@@ -1,27 +1,22 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('notificaciones', function (Blueprint $table) {
-            $table->id('id_notificacion');
-            $table->unsignedBigInteger('id_servicio')->nullable();
-            $table->string('email_destinatario', 100);
-            $table->string('asunto', 150);
-            $table->text('mensaje');
-            $table->timestamp('fecha_envio')->useCurrent();
-            $table->enum('estado_envio', ['Enviado', 'Pendiente', 'Fallido']);
-            $table->foreign('id_servicio')->references('id_servicio')->on('servicios')->onDelete('cascade');
+        Schema::connection('mongodb')->create('notificaciones', function ($collection) {
+            $collection->index('id_notificacion');
+            $collection->index('id_servicio');
+            $collection->index('email_destinatario');
+            $collection->index('estado_envio');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('notificaciones');
+        Schema::connection('mongodb')->drop('notificaciones');
     }
 };

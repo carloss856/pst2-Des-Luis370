@@ -1,17 +1,20 @@
 <?php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Servicio extends Model
 {
+    protected $connection = 'mongodb';
+    protected $collection = 'servicios';
     protected $table = 'servicios';
     protected $primaryKey = 'id_servicio';
     public $timestamps = false;
 
     protected $fillable = [
+        'id_servicio',
         'id_equipo',
         'codigo_rma',
         'fecha_ingreso',
@@ -20,6 +23,15 @@ class Servicio extends Model
         'costo_estimado',
         'costo_real',
         'validado_por_gerente',
+        'partes_trabajo',
+        'costo_mano_obra',
+        'tiempo_total_minutos',
+    ];
+
+    protected $casts = [
+        'partes_trabajo' => 'array',
+        'costo_mano_obra' => 'float',
+        'tiempo_total_minutos' => 'int',
     ];
 
     // Relación: Un servicio pertenece a un equipo

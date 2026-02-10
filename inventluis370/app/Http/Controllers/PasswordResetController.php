@@ -9,11 +9,15 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Support\Email;
 
 class PasswordResetController extends Controller
 {
     public function requestToken(Request $request)
     {
+        if ($request->has('email')) {
+            $request->merge(['email' => Email::normalize($request->input('email'))]);
+        }
         $request->validate(['email'=>'required|email']);
         $usuario = Usuario::where('email',$request->email)->first();
         if(!$usuario){
@@ -56,6 +60,9 @@ class PasswordResetController extends Controller
 
     public function verifyToken(Request $request)
     {
+        if ($request->has('email')) {
+            $request->merge(['email' => Email::normalize($request->input('email'))]);
+        }
         $request->validate(['email'=>'required|email','token'=>'required|string']);
         $auth = AutenticacionUsuario::where('email',$request->email)->first();
         if(!$auth || !$auth->token_recuperacion){
@@ -72,6 +79,9 @@ class PasswordResetController extends Controller
 
     public function resetPassword(Request $request)
     {
+        if ($request->has('email')) {
+            $request->merge(['email' => Email::normalize($request->input('email'))]);
+        }
         $request->validate([
             'email'=>'required|email',
             'token'=>'required|string',

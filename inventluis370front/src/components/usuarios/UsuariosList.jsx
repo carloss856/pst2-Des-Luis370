@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { getUsuarios, deleteUsuario } from '../../services/usuarios';
 import ModalAlert from "../ModalAlert";
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import ModalConfirm from "../ModalConfirm";
+import { canModule, getRbacCache } from '../../utils/rbac';
+import LoadingView from "../LoadingView";
 
 export default function UsuariosList() {
   const [usuarios, setUsuarios] = useState([]);
@@ -11,6 +13,11 @@ export default function UsuariosList() {
   const location = useLocation();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [usuarioAEliminar, setUsuarioAEliminar] = useState(null);
+
+  const rbac = getRbacCache();
+  const canCreate = canModule(rbac, 'usuarios', 'store');
+  const canEdit = canModule(rbac, 'usuarios', 'update');
+  const canDelete = canModule(rbac, 'usuarios', 'destroy');
 
   useEffect(() => {
     getUsuarios()
@@ -43,11 +50,7 @@ export default function UsuariosList() {
     setUsuarioAEliminar(null);
   };
 
-  if (loading) return (
-    <div className="d-flex justify-content-center align-items-center h-100">
-      Cargando...
-    </div>
-  );
+  if (loading) return <LoadingView message="Cargando usuarios…" />;
 
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center h-100">
@@ -61,7 +64,7 @@ export default function UsuariosList() {
               <th>Email</th>
               <th>Teléfono</th>
               <th>Tipo</th>
-              <th>Acciones</th>
+              {(canEdit || canDelete) && <th>Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -71,16 +74,22 @@ export default function UsuariosList() {
                 <td>{usuario.email}</td>
                 <td>{usuario.telefono}</td>
                 <td>{usuario.tipo}</td>
-                <td>
-                  <a className="btn btn-sm btn-primary me-2" href={`/usuarios/${usuario.id_persona}/editar`}>Editar</a>
-                  <button className="btn btn-sm btn-danger" onClick={() => { setUsuarioAEliminar(usuario.id_persona); setConfirmOpen(true); }}>Eliminar</button>
-                </td>
+                {(canEdit || canDelete) && (
+                  <td>
+                    {canEdit && (
+                      <Link className="btn btn-sm btn-primary me-2" to={`/usuarios/${usuario.id_persona}/editar`}>Editar</Link>
+                    )}
+                    {canDelete && (
+                      <button className="btn btn-sm btn-danger" onClick={() => { setUsuarioAEliminar(usuario.id_persona); setConfirmOpen(true); }}>Eliminar</button>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <a className="btn btn-success mt-3" href="/usuarios/crear">Crear usuario</a>
+      {canCreate && <Link className="btn btn-success mt-3" to="/usuarios/crear">Crear usuario</Link>}
       <ModalConfirm
         show={confirmOpen}
         title="Eliminar usuario"

@@ -1,16 +1,19 @@
 <?php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SolicitudRepuesto extends Model
 {
+    protected $connection = 'mongodb';
+    protected $collection = 'solicitud_repuestos';
     protected $table = 'solicitud_repuestos';
     protected $primaryKey = 'id_solicitud';
     public $timestamps = false;
 
     protected $fillable = [
+        'id_solicitud',
         'id_repuesto',
         'id_servicio',
         'cantidad_solicitada',

@@ -36,7 +36,7 @@ export default function RepuestoForm() {
 
     return (
         <div className="container d-flex justify-content-center align-items-center h-100">
-            <form onSubmit={handleSubmit} className="card p-4" style={{ width: 400 }}>
+            <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "80%" }}>
                 <h2 className="text-center mb-4">Crear Repuesto</h2>
                 <div className="mb-3">
                     <label htmlFor="nombre_repuesto">Nombre</label>

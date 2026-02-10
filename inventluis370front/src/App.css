@@ -1,5 +1,6 @@
 #root {
   width: 100%;
+  height: 100%;
   text-align: center;
 }
 
@@ -33,6 +34,47 @@
 
 .card {
   padding: 2em;
+}
+
+/* Ajustes de layout SOLO para el área de contenido (no afecta el menú izquierdo) */
+.app-content .card,
+.app-content .table-responsive {
+  width: 100%;
+  max-width: 80%;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 1244px) {
+  .app-content .solicitudes-actions {
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 1197px) {
+  .app-content .solicitudes-actions {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
+    height: 100%;
+    gap: 0.5rem;
+  }
+
+  .app-content .solicitudes-actions .btn {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* evita que el margen horizontal de Bootstrap (me-2) afecte en columna */
+  .app-content .solicitudes-actions .me-2 {
+    margin-right: 0 !important;
+  }
 }
 
 .read-the-docs {
