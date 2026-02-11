@@ -1169,4 +1169,79 @@ Notas (opcionales / mejoras, NO bloqueantes):
 - Si Android necesitara “exportar” desde servidor (en vez de export client-side), habría que crear endpoints dedicados de exportación. Actualmente el Web exporta del lado del cliente.
 
 
+2.22 FRONTEND (WEB) — TEMA CLARO / OSCURO (PALETA Y VARIABLES)
+
+Objetivo:
+- Mantener la paleta base original como tema CLARO (gama azul #48c).
+- Tema OSCURO: misma gama (azules más profundos), sin “blancos” innecesarios.
+- Debe afectar la página completa (fondo global, menú, módulos, cards, formularios).
+
+Implementación (Web):
+- Toggle global en la esquina superior derecha en todas las rutas.
+- Persistencia: localStorage key `ui_theme_mode` con valores `light` | `dark`.
+- Aplicación del tema: atributo en `html` → `data-bs-theme="light|dark"`.
+- CSS variables globales en `inventluis370front/src/index.css`.
+
+Paleta CLARO (light):
+- Fondo global (pantalla): `--app-bg: #48c`
+- Texto principal: `--app-fg: rgba(255, 255, 255, 0.87)`
+- Superficie (cards/containers): `--app-surface: #5c9ad6`
+- Superficie 2 (inputs): `--app-surface-2: #3f84c7`
+- Link: `--app-link: rgba(255, 255, 255, 0.88)`
+- Link hover: `--app-link-hover: rgba(255, 255, 255, 0.98)`
+
+Menú / NavBar (light):
+- Fondo drawer/menú: `--app-nav-bg: #555`
+- Borde: `--app-nav-border: #444`
+- Item activo: `--app-nav-active-bg: #1976d2`
+- Activo hover: `--app-nav-active-hover-bg: #1565c0`
+- Hover item: `--app-nav-hover-bg: rgba(255, 255, 255, 0.08)`
+- Dividers: `--app-nav-divider: rgba(255, 255, 255, 0.85)`
+
+Paleta OSCURO (dark):
+- Fondo global (pantalla): `--app-bg: #071a33`
+- Texto principal: `--app-fg: rgba(233, 243, 255, 0.92)`
+- Superficie (cards/containers): `--app-surface: #0d274d`
+- Superficie 2 (inputs): `--app-surface-2: #12305c`
+- Link: `--app-link: rgba(170, 210, 255, 0.92)`
+- Link hover: `--app-link-hover: rgba(205, 228, 255, 0.98)`
+
+Menú / NavBar (dark):
+- Fondo drawer/menú: `--app-nav-bg: #0a203a`
+- Borde: `--app-nav-border: rgba(173, 210, 255, 0.12)`
+- Item activo: `--app-nav-active-bg: #1257a8`
+- Activo hover: `--app-nav-active-hover-bg: #0f4b90`
+- Hover item: `--app-nav-hover-bg: rgba(170, 210, 255, 0.12)`
+- Dividers: `--app-nav-divider: rgba(170, 210, 255, 0.35)`
+
+Bootstrap tokens relevantes (para paridad Android):
+- `--bs-body-bg` = `--app-bg`
+- `--bs-body-color` = `--app-fg`
+- `--bs-card-bg` = `--app-surface`
+- `--bs-secondary-bg` = `--app-surface`
+- `--bs-tertiary-bg` = `--app-surface-2`
+- `--bs-primary: #48c` (se mantiene)
+
+Ícono del toggle (Web):
+
+- Tema CLARO: se muestra SOLO una luna (bootstrap-icon `bi-moon-stars-fill`).
+  - Color normal: negro.
+  - Hover: plateado y un poco más grande.
+- Tema OSCURO: se muestra SOLO un sol (bootstrap-icon `bi-sun-fill`).
+  - Color normal: negro.
+  - Hover: amarillo.
+
+Estilo del botón (Web):
+- Tamaño ícono: 26px.
+- Borde + fondo sutil para mejorar contraste (y contorno con `text-shadow` para que el sol/luna se distingan).
+
+Recomendación Android (equivalentes Compose):
+- Definir un Theme con dos esquemas que usen estos mismos valores.
+- Mapear:
+  - background/surface/surfaceVariant a `--app-bg`/`--app-surface`/`--app-surface-2`
+  - onBackground/onSurface a `--app-fg`
+  - primary a `#48c`
+  - divider a `--app-nav-divider`
+
+
 Fin del documento.

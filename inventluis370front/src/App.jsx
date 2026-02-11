@@ -13,6 +13,8 @@ import { getMyRbac } from "./services/rbac";
 import { canModule, canRoute, getRbacCache, setRbacCache } from "./utils/rbac";
 import { warmUpCoreData } from "./utils/warmup";
 
+const THEME_STORAGE_KEY = 'ui_theme_mode';
+
 // Lazy routes (code-splitting)
 const loadLogin = () => import("./pages/Login");
 const loadDashboard = () => import("./pages/Dashboard");
@@ -160,7 +162,7 @@ function AppContent({ rbac, rbacLoading }) {
         flex: 1,
         height: "100%",
         minHeight: 0,
-        bgcolor: "#48c",
+        bgcolor: "var(--app-bg)",
         px: { xs: 2, md: 3 },
         py: 2,
         overflowX: "hidden"
@@ -415,11 +417,24 @@ function AppContent({ rbac, rbacLoading }) {
 
 function App() {
   const isLogged = !!localStorage.getItem("token");
+  const [themeMode, setThemeMode] = React.useState(() => {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    return saved === 'dark' || saved === 'light' ? saved : 'light';
+  });
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [rbac, setRbac] = React.useState(() => getRbacCache());
   const [rbacLoading, setRbacLoading] = React.useState(() => isLogged && !getRbacCache());
   const [bootLoading, setBootLoading] = React.useState(false);
   const rbacRef = React.useRef(rbac);
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-bs-theme', themeMode);
+    localStorage.setItem(THEME_STORAGE_KEY, themeMode);
+  }, [themeMode]);
+
+  const toggleThemeMode = () => {
+    setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   React.useEffect(() => {
     rbacRef.current = rbac;
@@ -513,8 +528,22 @@ function App() {
     <BrowserRouter>
       <CssBaseline />
       <React.Suspense fallback={<LoadingView message="Cargando módulo…" />}>
+        <div className="position-fixed top-0 end-0 p-2" style={{ zIndex: 2000 }}>
+          <button
+            type="button"
+            className="theme-toggle-btn"
+            onClick={toggleThemeMode}
+            title={themeMode === 'dark' ? 'Cambiar a modo diurno' : 'Cambiar a modo nocturno'}
+            aria-label={themeMode === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          >
+            <i
+              className={`bi ${themeMode === 'dark' ? 'bi-sun-fill' : 'bi-moon-stars-fill'}`}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
         {isLogged ? (
-          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, height: "100dvh", minHeight: 0, bgcolor: "#48c" }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, height: "100dvh", minHeight: 0, bgcolor: "var(--app-bg)" }}>
             <NavBar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} rbac={rbac} rbacLoading={rbacLoading} />
             <Box
               sx={{
@@ -537,7 +566,7 @@ function App() {
             </Box>
           </Box>
         ) : (
-          <Box sx={{ height: "100dvh", width: "100dvw", bgcolor: "#48c" }}>
+          <Box sx={{ height: "100dvh", width: "100dvw", bgcolor: "var(--app-bg)" }}>
             <Routes>
               <Route
                 path="/login"

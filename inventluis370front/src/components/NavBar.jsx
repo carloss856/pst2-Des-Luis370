@@ -68,9 +68,9 @@ function SidebarContent({ location, rol, handleLogout, onClose, rbac, rbacLoadin
           px: 2,
           gap: 1,
           color: "#fff",
-          bgcolor: location.pathname.startsWith(link.to) ? "#1976d2" : "transparent",
+          bgcolor: location.pathname.startsWith(link.to) ? "var(--app-nav-active-bg)" : "transparent",
           fontWeight: location.pathname.startsWith(link.to) ? "bold" : "normal",
-          "&:hover": { bgcolor: location.pathname.startsWith(link.to) ? "#1565c0" : "rgba(255,255,255,0.08)" }
+          "&:hover": { bgcolor: location.pathname.startsWith(link.to) ? "var(--app-nav-active-hover-bg)" : "var(--app-nav-hover-bg)" }
         }}
       >
         <ListItemIcon sx={{ minWidth: 36, color: "#fff", mt: "2px" }}>{link.icon}</ListItemIcon>
@@ -100,17 +100,17 @@ function SidebarContent({ location, rol, handleLogout, onClose, rbac, rbacLoadin
       <Box sx={{ px: 2, pt: 2, pb: 1, textAlign: "center" }}>
         <img src={logo} alt="Logo" style={{ width: "100%", maxWidth: 160, objectFit: "contain" }} />
       </Box>
-      <Divider sx={{ bgcolor: 'rgba(255,255,255,0.85)' }} />
+      <Divider sx={{ bgcolor: 'var(--app-nav-divider)' }} />
       <Box sx={{ flex: 1, overflowY: "auto" }}>
         <List sx={{ py: 1 }}>
           {renderLinks(linksGeneral)}
-          {visibleTecnicos.length > 0 && <Divider sx={{ my: 1, bgcolor: 'rgba(255,255,255,0.85)' }} />}
+          {visibleTecnicos.length > 0 && <Divider sx={{ my: 1, bgcolor: 'var(--app-nav-divider)' }} />}
           {renderLinks(linksTecnicos)}
-          {visibleAdmin.length > 0 && <Divider sx={{ my: 1, bgcolor: 'rgba(255,255,255,0.85)' }} />}
+          {visibleAdmin.length > 0 && <Divider sx={{ my: 1, bgcolor: 'var(--app-nav-divider)' }} />}
           {renderLinks(linksAdministracion)}
         </List>
       </Box>
-      <Divider sx={{ bgcolor: 'rgba(255,255,255,0.85)' }} />
+      <Divider sx={{ bgcolor: 'var(--app-nav-divider)' }} />
       <List sx={{ py: 0.5 }}>
         <ListItem disablePadding>
           <ListItemButton
@@ -136,7 +136,7 @@ function SidebarContent({ location, rol, handleLogout, onClose, rbac, rbacLoadin
           <ListItemButton
             component={Link}
             to="/configuracion/notificaciones"
-            sx={{ width: "100%", color: "#fff", px: 2, py: 1, "&:hover": { bgcolor: "rgba(255,255,255,0.08)" } }}
+            sx={{ width: "100%", color: "#fff", px: 2, py: 1, "&:hover": { bgcolor: "var(--app-nav-hover-bg)" } }}
           >
             <ListItemIcon sx={{ minWidth: 36, color: "#fff" }}>
               <SettingsIcon />
@@ -150,7 +150,7 @@ function SidebarContent({ location, rol, handleLogout, onClose, rbac, rbacLoadin
         <ListItem disablePadding>
           <ListItemButton
             onClick={handleLogout}
-            sx={{ width: "100%", color: "#fff", px: 2, py: 1, "&:hover": { bgcolor: "rgba(255,255,255,0.08)" } }}
+            sx={{ width: "100%", color: "#fff", px: 2, py: 1, "&:hover": { bgcolor: "var(--app-nav-hover-bg)" } }}
           >
 
             <ListItemIcon sx={{ minWidth: 36, color: "#fff" }}>
@@ -189,9 +189,9 @@ export default function NavBar({ mobileOpen, setMobileOpen, rbac, rbacLoading })
             top: 12,
             left: 12,
             zIndex: 1300,
-            bgcolor: "#1976d2",
+            bgcolor: "var(--app-nav-active-bg)",
             color: "#fff",
-            "&:hover": { bgcolor: "#1565c0" }
+            "&:hover": { bgcolor: "var(--app-nav-active-hover-bg)" }
           }}
           size="large"
         >
@@ -208,9 +208,9 @@ export default function NavBar({ mobileOpen, setMobileOpen, rbac, rbacLoading })
               width: "75%",
               maxWidth: 320,
               boxSizing: "border-box",
-              bgcolor: "#555",
+              bgcolor: "var(--app-nav-bg)",
               color: "#fff",
-              borderRight: "1px solid #444"
+              borderRight: "1px solid var(--app-nav-border)"
             }
           }}
         >
@@ -236,9 +236,9 @@ export default function NavBar({ mobileOpen, setMobileOpen, rbac, rbacLoading })
         minWidth: 240,
         display: "flex",
         flexDirection: "column",
-        bgcolor: "#555",
+        bgcolor: "var(--app-nav-bg)",
         color: "#fff",
-        borderRight: "1px solid #444"
+        borderRight: "1px solid var(--app-nav-border)"
       }}
     >
       <SidebarContent

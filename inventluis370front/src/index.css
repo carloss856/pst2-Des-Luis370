@@ -5,7 +5,45 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #48c;
+
+  /* Tema claro (base original) */
+  --app-bg: #48c;
+  --app-fg: rgba(255, 255, 255, 0.87);
+  --app-surface: #5c9ad6;
+  --app-surface-2: #3f84c7;
+  --app-link: rgba(255, 255, 255, 0.88);
+  --app-link-hover: rgba(255, 255, 255, 0.98);
+
+  /* Menú (NavBar) */
+  --app-nav-bg: #555;
+  --app-nav-border: #444;
+  --app-nav-active-bg: #1976d2;
+  --app-nav-active-hover-bg: #1565c0;
+  --app-nav-hover-bg: rgba(255, 255, 255, 0.08);
+  --app-nav-divider: rgba(255, 255, 255, 0.85);
+
+  /* Alineación Bootstrap */
+  --bs-body-bg: var(--app-bg);
+  --bs-body-color: var(--app-fg);
+  --bs-link-color: var(--app-link);
+  --bs-link-hover-color: var(--app-link-hover);
+  --bs-primary: #48c;
+  --bs-secondary-bg: var(--app-surface);
+  --bs-tertiary-bg: var(--app-surface-2);
+  --bs-card-bg: var(--app-surface);
+  --bs-border-color: rgba(255, 255, 255, 0.25);
+  --bs-heading-color: var(--app-fg);
+  --bs-emphasis-color: var(--app-fg);
+  --bs-secondary-color: rgba(255, 255, 255, 0.75);
+  --bs-tertiary-color: rgba(255, 255, 255, 0.6);
+
+  /* Toggle tema (CLARO): icono negro; hover plateado y un poco más grande */
+  --theme-toggle-icon: #000;
+  --theme-toggle-icon-hover: #c0c0c0;
+  --theme-toggle-hover-scale: 1.18;
+  --theme-toggle-border: rgba(255, 255, 255, 0.45);
+  --theme-toggle-bg: rgba(255, 255, 255, 0.12);
+  --theme-toggle-outline: rgba(255, 255, 255, 0.75);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,11 +60,11 @@ body,
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--app-link);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--app-link-hover);
 }
 
 body {
@@ -35,7 +73,99 @@ body {
   min-height: 100dvh;
   height: 100%;
   width: 100%;
-  background-color: #48c;
+  background-color: var(--app-bg);
+  color: var(--app-fg);
+}
+
+html[data-bs-theme='dark'] {
+  /* Tema oscuro (misma gama azul, sin blancos innecesarios) */
+  --app-bg: #071a33;
+  --app-fg: rgba(233, 243, 255, 0.92);
+  --app-surface: #0d274d;
+  --app-surface-2: #12305c;
+  --app-link: rgba(170, 210, 255, 0.92);
+  --app-link-hover: rgba(205, 228, 255, 0.98);
+
+  /* Menú (NavBar) */
+  --app-nav-bg: #0a203a;
+  --app-nav-border: rgba(173, 210, 255, 0.12);
+  --app-nav-active-bg: #1257a8;
+  --app-nav-active-hover-bg: #0f4b90;
+  --app-nav-hover-bg: rgba(170, 210, 255, 0.12);
+  --app-nav-divider: rgba(170, 210, 255, 0.35);
+
+  /* Alineación Bootstrap */
+  --bs-body-bg: var(--app-bg);
+  --bs-body-color: var(--app-fg);
+  --bs-link-color: var(--app-link);
+  --bs-link-hover-color: var(--app-link-hover);
+  --bs-primary: #48c;
+  --bs-secondary-bg: var(--app-surface);
+  --bs-tertiary-bg: var(--app-surface-2);
+  --bs-card-bg: var(--app-surface);
+  --bs-border-color: rgba(170, 210, 255, 0.18);
+  --bs-heading-color: var(--app-fg);
+  --bs-emphasis-color: var(--app-fg);
+  --bs-secondary-color: rgba(233, 243, 255, 0.78);
+  --bs-tertiary-color: rgba(233, 243, 255, 0.6);
+
+  /* Toggle tema (OSCURO): icono negro; hover amarillo */
+  --theme-toggle-icon: #000;
+  --theme-toggle-icon-hover: #ffd400;
+  --theme-toggle-hover-scale: 1;
+  --theme-toggle-border: rgba(233, 243, 255, 0.35);
+  --theme-toggle-bg: rgba(233, 243, 255, 0.08);
+  --theme-toggle-outline: rgba(233, 243, 255, 0.85);
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--theme-toggle-border);
+  border-radius: 10px;
+  background: var(--theme-toggle-bg);
+  cursor: pointer;
+}
+
+.theme-toggle-btn .bi {
+  font-size: 26px;
+  color: var(--theme-toggle-icon);
+  text-shadow: 0 0 2px var(--theme-toggle-outline), 0 0 1px var(--theme-toggle-outline);
+  transition: transform 140ms ease, color 140ms ease, text-shadow 140ms ease;
+}
+
+.theme-toggle-btn:hover .bi {
+  color: var(--theme-toggle-icon-hover);
+  transform: scale(var(--theme-toggle-hover-scale));
+}
+
+/* Bootstrap: evitar blancos por defecto en formularios/superficies */
+.card {
+  background-color: var(--app-surface);
+  border-color: var(--bs-border-color);
+}
+
+.form-control,
+.form-select,
+.form-floating > .form-control,
+.form-floating > .form-select {
+  background-color: var(--app-surface-2);
+  color: var(--app-fg);
+  border-color: var(--bs-border-color);
+}
+
+.form-control::placeholder {
+  color: rgba(233, 243, 255, 0.65);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(205, 228, 255, 0.55);
+  box-shadow: 0 0 0 0.25rem rgba(72, 136, 204, 0.35);
 }
 
 h1 {
@@ -60,17 +190,4 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #48c;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }
