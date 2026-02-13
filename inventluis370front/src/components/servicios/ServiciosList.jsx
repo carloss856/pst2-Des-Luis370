@@ -103,7 +103,7 @@ const ServiciosList = () => {
                     <td>
                       {canParts && (
                         <button
-                          className="btn btn-sm btn-outline-secondary me-2 mb-2"
+                          className="btn btn-sm btn-outline-secondary me-2 mb-2 disabled"
                           onClick={() => navigate(`/servicios/${servicio.id_servicio}/partes`)}
                         >
                           Partes

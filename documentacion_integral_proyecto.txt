@@ -1182,6 +1182,10 @@ Implementación (Web):
 - Aplicación del tema: atributo en `html` → `data-bs-theme="light|dark"`.
 - CSS variables globales en `inventluis370front/src/index.css`.
 
+Performance (Web):
+- Se eliminó la precarga masiva de módulos y el warmup global de listas (antes disparaba muchos requests al login y podía tardar ~1 min).
+- Cada módulo queda en lazy-load por ruta (se carga bajo demanda al navegar).
+
 Paleta CLARO (light):
 - Fondo global (pantalla): `--app-bg: #48c`
 - Texto principal: `--app-fg: rgba(255, 255, 255, 0.87)`

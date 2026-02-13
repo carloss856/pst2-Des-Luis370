@@ -11,7 +11,6 @@ import {
 } from "react-router-dom";
 import { getMyRbac } from "./services/rbac";
 import { canModule, canRoute, getRbacCache, setRbacCache } from "./utils/rbac";
-import { warmUpCoreData } from "./utils/warmup";
 
 const THEME_STORAGE_KEY = 'ui_theme_mode';
 
@@ -81,58 +80,6 @@ const GarantiaEditForm = React.lazy(loadGarantiaEditForm);
 const ServicePartsPanel = React.lazy(loadServicePartsPanel);
 const TarifasPanel = React.lazy(loadTarifasPanel);
 const Permissions = React.lazy(loadPermissions);
-
-const preloadAllModules = () => {
-  [
-    loadDashboard,
-    loadEmpresasList,
-    loadEmpresaForm,
-    loadEmpresaEditForm,
-    loadUsuariosList,
-    loadUsuarioForm,
-    loadUsuarioEditForm,
-    loadEquiposList,
-    loadEquipoForm,
-    loadEquipoEditForm,
-    loadInventario,
-    loadInventarioForm,
-    loadServiciosList,
-    loadServicioForm,
-    loadServicioEditForm,
-    loadRepuestosList,
-    loadRepuestosForm,
-    loadRepuestoEditForm,
-    loadSolicitudes,
-    loadSolicitudesForm,
-    loadSolicitudesEditForm,
-    loadNotificaciones,
-    loadNotificacionesConfigForm,
-    loadReportes,
-    loadForgotPassword,
-    loadResetPassword,
-    loadGarantiasList,
-    loadGarantiaEditForm,
-    loadServicePartsPanel,
-    loadTarifasPanel,
-    loadPermissions,
-  ].forEach((fn) => {
-    try {
-      fn();
-    } catch {
-      // ignore
-    }
-  });
-};
-
-const preloadPriorityModules = () => {
-  [loadServiciosList, loadSolicitudes, loadGarantiasList].forEach((fn) => {
-    try {
-      fn();
-    } catch {
-      // ignore
-    }
-  });
-};
 
 
 function PrivateRoute({ children, roles, module, action, routeName, rbac, rbacLoading }) {
@@ -424,7 +371,6 @@ function App() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [rbac, setRbac] = React.useState(() => getRbacCache());
   const [rbacLoading, setRbacLoading] = React.useState(() => isLogged && !getRbacCache());
-  const [bootLoading, setBootLoading] = React.useState(false);
   const rbacRef = React.useRef(rbac);
 
   React.useEffect(() => {
@@ -471,52 +417,6 @@ function App() {
     refreshRbac();
   }, [isLogged, refreshRbac]);
 
-  // Precarga pasiva (para que los módulos abran rápido y no quede la vista en “Cargando”).
-  React.useEffect(() => {
-    if (!isLogged) return;
-
-    // 1) Prioridad: módulos que el usuario siente “lentos” (chunk + datos)
-    try { preloadPriorityModules(); } catch {}
-    Promise.resolve().then(() => warmUpCoreData()).catch(() => {});
-
-    // 2) Resto: en idle para no bloquear el hilo
-    const id = typeof window.requestIdleCallback === 'function'
-      ? window.requestIdleCallback(() => preloadAllModules())
-      : window.setTimeout(() => preloadAllModules(), 600);
-    return () => {
-      if (typeof window.cancelIdleCallback === 'function') {
-        window.cancelIdleCallback(id);
-      } else {
-        window.clearTimeout(id);
-      }
-    };
-  }, [isLogged]);
-
-  // Warmup “tipo AJAX”: una sola ventana de carga por sesión y luego navegas sin esperas.
-  React.useEffect(() => {
-    if (!isLogged) return;
-    const key = 'warmup_done_v1';
-    if (sessionStorage.getItem(key) === '1') return;
-
-    let cancelled = false;
-    setBootLoading(true);
-
-    (async () => {
-      try {
-        preloadAllModules();
-        await warmUpCoreData();
-      } finally {
-        if (cancelled) return;
-        sessionStorage.setItem(key, '1');
-        setBootLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isLogged]);
-
   React.useEffect(() => {
     if (!isLogged) return;
     const handler = () => refreshRbac();
@@ -556,13 +456,7 @@ function App() {
                 overflowX: "hidden",
               }}
             >
-              {bootLoading ? (
-                <Box sx={{ px: { xs: 2, md: 3 }, py: 2 }}>
-                  <LoadingView message="Cargando datos del sistema…" />
-                </Box>
-              ) : (
-                <AppContent rbac={rbac} rbacLoading={rbacLoading} />
-              )}
+              <AppContent rbac={rbac} rbacLoading={rbacLoading} />
             </Box>
           </Box>
         ) : (
