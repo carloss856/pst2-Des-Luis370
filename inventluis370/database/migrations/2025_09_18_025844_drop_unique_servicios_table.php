@@ -7,15 +7,17 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('servicios', function (Blueprint $table) {
-            $table->dropUnique(['codigo_rma']);
+        // MongoDB: eliminar el índice unique sobre codigo_rma si existe.
+        Schema::connection('mongodb')->table('servicios', function ($collection) {
+            try { $collection->dropIndex('codigo_rma_1'); } catch (\Throwable $e) { /* ignorar */ }
         });
     }
 
     public function down(): void
     {
-        Schema::table('servicios', function (Blueprint $table) {
-            $table->unique('codigo_rma');
+        // MongoDB: re-crear el índice unique (best-effort).
+        Schema::connection('mongodb')->table('servicios', function ($collection) {
+            try { $collection->unique('codigo_rma'); } catch (\Throwable $e) { /* ignorar */ }
         });
     }
 };

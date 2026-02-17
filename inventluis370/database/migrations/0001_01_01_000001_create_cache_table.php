@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection('mongodb')->create('cache', function ($collection) {
-            $collection->index(['key' => 1], ['unique' => true]);
-            $collection->index(['expiration' => 1]);
+            $collection->unique('key');
+            $collection->index('expiration');
         });
 
         Schema::connection('mongodb')->create('cache_locks', function ($collection) {
-            $collection->index(['key' => 1], ['unique' => true]);
-            $collection->index(['expiration' => 1]);
+            $collection->unique('key');
+            $collection->index('expiration');
         });
     }
 

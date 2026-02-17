@@ -7,16 +7,12 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('usuario', function (Blueprint $table) {
-            $table->boolean('recibir_notificaciones')->default(true);
-            $table->json('tipos_notificacion')->nullable(); // Ejemplo: ["servicios","repuestos","reportes"]
-        });
+        // MongoDB es schemaless: no se agregan columnas.
+        // Los campos se incorporan cuando se escriben documentos desde la app.
     }
 
     public function down(): void
     {
-        Schema::table('usuario', function (Blueprint $table) {
-            $table->dropColumn(['recibir_notificaciones', 'tipos_notificacion']);
-        });
+        // noop
     }
 };

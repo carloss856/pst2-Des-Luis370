@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('notificaciones', function (Blueprint $table) {
-            $table->unsignedBigInteger('id_servicio')->nullable()->change();
-        });
+        // MongoDB es schemaless: no se alteran columnas.
     }
 
     /**
@@ -21,8 +19,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('notificaciones', function (Blueprint $table) {
-            //
-        });
+        // noop
     }
 };

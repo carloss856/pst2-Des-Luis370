@@ -12,20 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection('mongodb')->create('users', function ($collection) {
-            $collection->index(['email' => 1], ['unique' => true]);
-            $collection->index(['name' => 1]);
-            $collection->index(['created_at' => 1]);
+            $collection->unique('email');
+            $collection->index('name');
+            $collection->index('created_at');
         });
 
         Schema::connection('mongodb')->create('password_reset_tokens', function ($collection) {
-            $collection->index(['email' => 1], ['unique' => true]);
-            $collection->index(['created_at' => 1]);
+            $collection->unique('email');
+            $collection->index('created_at');
         });
 
         Schema::connection('mongodb')->create('sessions', function ($collection) {
-            $collection->index(['id' => 1], ['unique' => true]);
-            $collection->index(['user_id' => 1]);
-            $collection->index(['last_activity' => 1]);
+            $collection->unique('id');
+            $collection->index('user_id');
+            $collection->index('last_activity');
         });
     }
 

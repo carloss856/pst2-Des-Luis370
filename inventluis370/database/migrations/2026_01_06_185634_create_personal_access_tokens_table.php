@@ -11,16 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('personal_access_tokens', function (Blueprint $table) {
-            $table->id();
-            $table->morphs('tokenable');
-            $table->string('name');
-            $table->string('token', 64)->unique();
-            $table->text('abilities')->nullable();
-            $table->timestamp('last_used_at')->nullable();
-            $table->timestamp('expires_at')->nullable();
-            $table->timestamps();
-        });
+        // El proyecto usa MongoDB y ya tiene una migración Mongo para `personal_access_tokens`
+        // (ver 2025_06_11_000418_create_personal_access_tokens_table.php).
+        // Esta migración (SQL) se deja como noop para evitar fallos al migrar con DB_CONNECTION=mongodb.
     }
 
     /**
@@ -28,6 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('personal_access_tokens');
+        // noop
     }
 };

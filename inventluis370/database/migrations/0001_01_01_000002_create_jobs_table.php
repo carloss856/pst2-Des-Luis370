@@ -12,21 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection('mongodb')->create('jobs', function ($collection) {
-            $collection->index(['queue' => 1]);
-            $collection->index(['available_at' => 1]);
-            $collection->index(['created_at' => 1]);
+            $collection->index('queue');
+            $collection->index('available_at');
+            $collection->index('created_at');
         });
 
         Schema::connection('mongodb')->create('job_batches', function ($collection) {
-            $collection->index(['id' => 1], ['unique' => true]);
-            $collection->index(['name' => 1]);
-            $collection->index(['created_at' => 1]);
-            $collection->index(['finished_at' => 1]);
+            $collection->unique('id');
+            $collection->index('name');
+            $collection->index('created_at');
+            $collection->index('finished_at');
         });
 
         Schema::connection('mongodb')->create('failed_jobs', function ($collection) {
-            $collection->index(['uuid' => 1], ['unique' => true]);
-            $collection->index(['failed_at' => 1]);
+            $collection->unique('uuid');
+            $collection->index('failed_at');
         });
     }
 
