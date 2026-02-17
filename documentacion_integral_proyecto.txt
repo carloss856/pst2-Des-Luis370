@@ -366,6 +366,161 @@ Notas para el Front (botones y pantallas):
 - Si el rol NO tiene show, bloquear navegación a detalle (o mostrar 403 con mensaje amigable).
 
 
+2.16.1 MÓDULO “PERMISOS” (ADMIN/RBAC) — DESCRIPCIÓN COMPLETA PARA ANDROID
+
+Propósito
+- Permite a Administrador/Gerente gestionar la matriz RBAC sin redeploy.
+- Soporta 2 niveles:
+  1) Override global (reemplaza la matriz completa)
+  2) Override por usuario (parche/diferencias sobre la base del rol)
+
+Quién puede usarlo
+- Solo roles: Administrador y Gerente.
+- El backend valida esto en:
+  - Middleware RolePermission (rutas nombradas)
+  - PermissionsController::assertCanManage() (bloqueo explícito 401/403)
+
+Fuente de verdad / cálculo del RBAC
+- Base: inventluis370/config/permissions.php
+  - modules: { moduleKey: { Role: [actions...] } }
+  - routes: { routeName: [Role...] }
+- Si existe override global en BD (permission_settings key="rbac"), REEMPLAZA la base completa.
+- Anti-lockout (evitar bloquearse a sí mismos):
+  - Siempre se fuerza `rbac.me` y `permissions.*` para Admin/Gerente en effective().
+- RBAC efectivo para un usuario:
+  - Se filtran modules/routes por el rol del usuario
+  - Luego se aplica override por usuario si existe (parche)
+
+Persistencia en MongoDB (colección: permission_settings)
+- Override global:
+  - key: "rbac"
+  - modules: objeto completo (moduleKey → role → actions[])
+  - routes: objeto completo (routeName → roles[])
+  - updated_at, updated_by
+- Override por usuario:
+  - key: "rbac_user:<id_persona>"
+  - modules: SOLO diferencias vs base del rol (se guarda incluso [] para denegar)
+  - routes: lista (array) de routeNames; siempre incluye `rbac.me`
+  - updated_at, updated_by
+
+Esquema de acciones
+- Acciones CRUD estándar:
+  - index, show, store, update, destroy
+- Acciones “extra” por módulo (ejemplos reales en config):
+  - servicios: partes.index / partes.store / partes.update / partes.destroy
+  - notificaciones: setLeida / markAllAsRead
+- En UI se deben preservar estas acciones extra si existen.
+
+API (Backend)
+Notas generales
+- Todas estas rutas están bajo middleware TokenAuth + RolePermission.
+- Todas responden JSON.
+- Todas incluyen `schemaVersion` para invalidar cache en clientes.
+
+1) Override global
+- GET /api/permissions
+  - 200:
+    {
+      "schemaVersion": 1,
+      "effective": {
+        "modules": { "servicios": {"Administrador": ["index",...], "Técnico": [...]}, ... },
+        "routes": { "permissions.index": ["Administrador","Gerente"], ... }
+      },
+      "override": {
+        "modules": {...},
+        "routes": {...},
+        "updated_at": "...",
+        "updated_by": "USR-..."
+      } | null
+    }
+
+- PUT /api/permissions
+  - Body (requerido):
+    {
+      "modules": { [moduleKey]: { [Role]: [actions...] } },
+      "routes":  { [routeName]: [Role...] }
+    }
+  - Nota importante: si guardas override global, el effective pasa a ser “la BD”.
+    En consecuencia, el cliente debe enviar la matriz completa (no parches).
+  - 200:
+    { "schemaVersion": 1, "saved": {"key":"rbac", ...}, "effective": {...} }
+
+- POST /api/permissions/reset
+  - Elimina el override global en BD.
+  - 200:
+    { "schemaVersion": 1, "message": "OK", "effective": <vuelve a config base> }
+
+2) Override por usuario
+- GET /api/permissions/user/{id_persona}
+  - 200:
+    {
+      "schemaVersion": 1,
+      "user": { "id_persona": "USR-...", "nombre": "...", "tipo": "Técnico" },
+      "effective": {
+        "role": "Técnico",
+        "modules": { [moduleKey]: [actions...] },
+        "routes":  [routeName, ...]
+      },
+      "override": {
+        "modules": { [moduleKey]: [actions...] },
+        "routes":  [routeName, ...],
+        "updated_at": "...",
+        "updated_by": "USR-..."
+      } | null
+    }
+  - 404 si el usuario no existe.
+
+- PUT /api/permissions/user/{id_persona}
+  - Body (requerido):
+    {
+      "modules": { [moduleKey]: [actions...] },
+      "routes":  [routeName, ...]
+    }
+  - Comportamiento: el backend calcula y guarda SOLO diferencias vs la base del rol.
+  - 200:
+    { "schemaVersion": 1, "saved": {"key":"rbac_user:<id>", ...}, "effective": {...} }
+
+- POST /api/permissions/user/{id_persona}/reset
+  - Elimina el override por usuario.
+  - 200:
+    { "schemaVersion": 1, "message": "OK", "effective": <rbac del usuario sin parche> }
+
+Errores comunes (todas las rutas)
+- 401 Unauthorized: sin token/sesión.
+- 403 Forbidden: rol no autorizado (no Admin/Gerente).
+- 422 Validation error: payload mal formado (por ejemplo modules faltante).
+
+UI Web actual (paridad recomendada Android)
+- Pantalla: /permisos (inventluis370front/src/pages/Permissions.jsx)
+- Modos:
+  - Global: edita matriz completa (modules por Role, routes por Role)
+  - Usuario: selecciona usuario y edita RBAC efectivo (modules como arrays) + rutas
+- Auto-guardado: debounce ~700ms tras cambios.
+- Reglas UX para toggles CRUD:
+  - Si se habilita "index" → forzar también "show".
+  - Si se deshabilita "index" → limpiar todas las acciones del módulo.
+  - Acciones extra se preservan (no se pierden al editar CRUD).
+- Botones:
+  - Recargar (GET)
+  - Restablecer (POST reset)
+
+Recomendación Android (implementación mínima)
+- Mostrar este módulo solo si el usuario autenticado tiene acceso a `permissions.index` (o rol Admin/Gerente).
+- Dos pestañas:
+  1) Global
+     - GET /api/permissions
+     - Editor por rol: lista de módulos y toggles CRUD
+     - Guardar: PUT /api/permissions enviando la matriz completa
+     - Reset: POST /api/permissions/reset
+  2) Usuario
+     - Lista usuarios: GET /api/usuarios (filtrar por tipo si quieres)
+     - Al seleccionar: GET /api/permissions/user/{id}
+     - Editor: módulos (acciones[]) + rutas (lista)
+     - Guardar: PUT /api/permissions/user/{id}
+     - Reset: POST /api/permissions/user/{id}/reset
+- Cache: opcional. Si se cachea, invalidar cuando cambie `schemaVersion`.
+
+
 2.17 Índices MongoDB (recomendados)
 
 Objetivo:

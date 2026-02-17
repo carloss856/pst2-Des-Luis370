@@ -15,7 +15,7 @@ export default function FloatingInput({
       <input
         type={type}
         id={id}
-        className="form-control"
+        className="form-control bg-white color-dark"
         placeholder={label}
         value={value}
         onChange={onChange}

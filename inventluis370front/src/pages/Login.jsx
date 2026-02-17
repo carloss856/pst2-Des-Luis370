@@ -42,6 +42,7 @@ export default function Login({ onLogin }) {
           autoComplete="username"
         />
         <FloatingInput
+          className="bg-light"
           id="contrasena"
           label="Contraseña"
           type="password"

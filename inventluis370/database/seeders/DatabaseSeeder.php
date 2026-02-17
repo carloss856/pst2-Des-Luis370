@@ -25,18 +25,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $email = 'carlos.lamole98@gmail.com';
+        // Usuario admin por defecto (alineado con la migración create_usuario_table)
+        $email = 'administrador@correo.com';
 
         $usuario = Usuario::where('email', $email)->first();
 
         if (!$usuario) {
             Usuario::create([
-                'id_persona' => 'USR-' . Str::upper(Str::random(8)),
-                'nombre' => 'Carlos Lamole',
+                'id_persona' => 'USR-ADMIN',
+                'nombre' => 'Administrador',
                 'email' => $email,
                 'telefono' => null,
                 'tipo' => 'Administrador',
-                'contrasena' => Hash::make('227567'),
+                'contrasena' => Hash::make('administrador'),
                 'id_empresa' => null,
                 'validado_por_gerente' => true,
                 'recibir_notificaciones' => true,
