@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { getUsuario, updateUsuario } from '../../services/usuarios';
 import { getEmpresas } from '../../services/empresas';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -68,11 +68,11 @@ export default function UsuarioEditForm() {
     }
   };
 
-  if (loading) return <LoadingView message="Cargando usuario…" />;
+  if (loading) return <LoadingView message="Cargando usuario..." />;
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "80%", width: "100%" }}>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "680px", width: "100%" }}>
         <h2 className="text-center mb-4">Editar Usuario</h2>
         <div className="mb-3">
           <label className="form-label">Nombre</label>
@@ -83,8 +83,8 @@ export default function UsuarioEditForm() {
           <input name="email" className="form-control" placeholder="Email" value={form.email} onChange={handleChange} required />
         </div>
         <div className="mb-3">
-          <label className="form-label">Teléfono</label>
-          <input name="telefono" className="form-control" placeholder="Teléfono" value={form.telefono} onChange={handleChange} />
+          <label className="form-label">Telefono</label>
+          <input name="telefono" className="form-control" placeholder="Telefono" value={form.telefono} onChange={handleChange} />
         </div>
         {form.tipo === "Cliente" ? (
           <div className="mb-3">
@@ -105,7 +105,7 @@ export default function UsuarioEditForm() {
             <select name="tipo" className="form-select" value={form.tipo} onChange={handleChange} required>
               <option value="" disabled>Seleccione un tipo</option>
               <option value="Administrador">Administrador</option>
-              <option value="Técnico">Técnico</option>
+              <option value="Tecnico">Tecnico</option>
               <option value="Gerente">Gerente</option>
               <option value="Empresa">Empresa</option>
               <option value="Cliente">Cliente</option>
@@ -132,9 +132,9 @@ export default function UsuarioEditForm() {
           </div>
         )}
         <div className="mb-3">
-          <label className="form-label">Contraseña</label>
-          <input name="contrasena" type="password" className="form-control" placeholder="Nueva contraseña (opcional)" value={form.contrasena} onChange={handleChange} />
-          <small className="form-text text-muted">Dejar en blanco si no desea cambiar la contraseña</small>
+          <label className="form-label">Contrasena</label>
+          <input name="contrasena" type="password" className="form-control" placeholder="Nueva Contrasena (opcional)" value={form.contrasena} onChange={handleChange} />
+          <small className="form-text text-muted">Dejar en blanco si no desea cambiar la Contrasena</small>
         </div>
         <button type="submit" className="btn btn-primary w-100 mb-2">Actualizar</button>
         <button type="button" className="btn btn-secondary w-100" onClick={() => navigate('/usuarios')}>Volver</button>
@@ -144,3 +144,4 @@ export default function UsuarioEditForm() {
     </div>
   );
 }
+

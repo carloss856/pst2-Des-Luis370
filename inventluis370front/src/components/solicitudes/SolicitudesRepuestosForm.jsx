@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { getRepuestos } from "../../services/repuestos";
 import { getServicios } from "../../services/servicios";
 import { createSolicitud } from "../../services/solicitudesRepuestos";
@@ -72,7 +72,7 @@ const SolicitudesRepuestosForm = () => {
 
     return (
         <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-            <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "80%", width: "100%" }}>
+            <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "680px", width: "100%" }}>
                 <h2 className="text-center mb-4">Crear Solicitud de Repuesto</h2>
                 <div className="mb-3">
                     <label className="form-label">Repuesto</label>

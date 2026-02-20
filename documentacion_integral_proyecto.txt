@@ -1403,4 +1403,35 @@ Recomendación Android (equivalentes Compose):
   - divider a `--app-nav-divider`
 
 
+=== REGISTRO DE CAMBIOS (ACTUALIZACIONES) ===
+
+Fecha: 2026-02-19
+1. Se agrego esta seccion al final para registrar cambios con fecha unica por dia y numeracion.
+2. Dashboard web: se oscurecio el fondo de las tarjetas de estadisticas/KPI/listas para mejorar contraste visual.
+3. Dashboard web: las mini graficas pasaron de linea a barras completas ancladas en la base de la tarjeta.
+4. Dashboard web: se agrego una linea corta centrada en la parte inferior del grafico, visible solo cuando el total es mayor a cero.
+5. Dashboard web: se movieron colores de tarjetas/graficas a variables CSS por tema para diferenciar mejor modo claro y modo oscuro.
+6. Dashboard web: en modo claro las tarjetas del dashboard quedaron mas claras que en modo oscuro para que la diferencia visual sea evidente.
+7. Dashboard web: la etiqueta de periodo (chip) se muestra en espanol y se corrigio contraste del periodo seleccionado en los botones Dia/Semana/Mes/Ano.
+8. Dashboard web: se incremento la sensibilidad de resize (mas columnas en desktop, menor rowHeight y handles lateral/inferior) para cambiar tamano de tarjetas con menos movimiento del mouse.
+9. Dashboard web: se definieron tamanos minimos por tipo de tarjeta (kpi/lista/modulo) para llegar al minimo con menos recorrido de mouse en resize horizontal y vertical.
+10. Login web: se corrigio la legibilidad de inputs/labels/placeholder en ambos temas usando colores del tema en `form-floating`.
+11. Login web: se agrego boton Mostrar/Ocultar dentro del campo Contrasena para visualizar el texto escrito en modo claro y oscuro.
+12. Login web: en modo claro los inputs de autenticacion dejaron de verse azul por dentro (estilo dedicado `auth-form`), manteniendo modo oscuro con colores del tema.
+13. Recuperacion de contrasena: el card de /forgot-password se ajusto al mismo ancho del login (maxWidth 420px).
+14. Empresas web: se corrigio el espaciado de acciones en el listado (`Editar` y `Eliminar`) usando contenedor flex con `gap` para evitar botones pegados.
+15. Formularios web de crear/editar por modulo: se redujo ancho maximo de 80% a 680px (Empresas, Equipos, Inventario, Repuestos, Servicios, Solicitudes, Usuarios y Garantias) para un layout mas compacto y consistente.
+
+Fecha: 2026-02-20
+1. Servicios web (Editar): se corrigio la carga del equipo para resolver por `id_equipo` o `_id`, evitando que el campo de equipo aparezca vacio al editar.
+2. Frontend web: se corrigieron textos con mojibake (por ejemplo `GarantÃ­a`, `DirecciÃ³n`, `TelÃ©fono`, `TÃ©cnico`, `ContraseÃ±a`) en formularios de Empresas, Repuestos, Servicios, Usuarios y Garantias.
+3. Servicios web (Editar): se normalizaron validaciones de rol para Tecnico/Gerente/Administrador con variantes de texto para evitar bloqueos por diferencias de codificacion.
+4. Servicios web (Editar): el campo Equipo se habilito como selector editable para permitir cambiar el equipo asociado durante la edicion del servicio.
+5. Garantias web (Editar): se normalizo `fecha_inicio` y `fecha_fin` a formato `YYYY-MM-DD` al cargar/enviar para que los inputs de fecha muestren correctamente los valores cuando la API retorna datetime con hora.
+6. Notificaciones web: se removio el modulo de Notificaciones del menu lateral y de la pantalla de Permisos (lista de modulos), manteniendo acceso general via campana global y ruta.
+7. Notificaciones web: se agrego campana en la esquina superior derecha (a la izquierda del toggle de tema) con contador de no leidas, popup, boton Leer todas, accion Visto por fila y boton Ver todas que navega a `/notificaciones`.
+8. Notificaciones web: en frontend la ruta `/notificaciones` se dejo sin validacion RBAC por modulo para permitir acceso comun a todos los usuarios autenticados.
+9. Notificaciones web: se corrigio contraste visual de la campana con variables especificas por tema (claro/oscuro), mejorando legibilidad del icono, borde y fondo.
+10. Notificaciones web: se ajusto estilo de campana con el mismo fondo del toggle de tema, borde blanco visible, hover amarillo y color de icono por tema (azul oscuro en claro, azul medio claro en oscuro).
+
 Fin del documento.

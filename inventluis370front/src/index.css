@@ -22,6 +22,16 @@
   --app-nav-hover-bg: rgba(255, 255, 255, 0.08);
   --app-nav-divider: rgba(255, 255, 255, 0.85);
 
+  /* Dashboard (tema claro: mas claro para diferenciar de oscuro) */
+  --dashboard-panel-bg: rgba(255, 255, 255, 0.16);
+  --dashboard-card-bg: rgba(255, 255, 255, 0.22);
+  --dashboard-card-border: rgba(255, 255, 255, 0.34);
+  --dashboard-chip-bg: rgba(255, 255, 255, 0.24);
+  --dashboard-control-bg: rgba(255, 255, 255, 0.20);
+  --dashboard-bar-fill: rgba(255, 255, 255, 0.86);
+  --dashboard-bar-zero: rgba(255, 255, 255, 0.28);
+  --dashboard-center-line: rgba(255, 255, 255, 0.92);
+
   /* Alineación Bootstrap */
   --bs-body-bg: var(--app-bg);
   --bs-body-color: var(--app-fg);
@@ -44,6 +54,12 @@
   --theme-toggle-border: rgba(255, 255, 255, 0.45);
   --theme-toggle-bg: rgba(255, 255, 255, 0.12);
   --theme-toggle-outline: rgba(255, 255, 255, 0.75);
+
+  /* Campana de notificaciones (tema claro) */
+  --notif-bell-bg: var(--theme-toggle-bg);
+  --notif-bell-border: rgba(255, 255, 255, 0.9);
+  --notif-bell-icon: #0b2f63;
+  --notif-bell-icon-hover: #ffd400;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -94,6 +110,16 @@ html[data-bs-theme='dark'] {
   --app-nav-hover-bg: rgba(170, 210, 255, 0.12);
   --app-nav-divider: rgba(170, 210, 255, 0.35);
 
+  /* Dashboard (tema oscuro) */
+  --dashboard-panel-bg: rgba(5, 16, 34, 0.64);
+  --dashboard-card-bg: rgba(7, 22, 44, 0.72);
+  --dashboard-card-border: rgba(173, 210, 255, 0.18);
+  --dashboard-chip-bg: rgba(173, 210, 255, 0.18);
+  --dashboard-control-bg: rgba(5, 16, 34, 0.56);
+  --dashboard-bar-fill: rgba(173, 210, 255, 0.88);
+  --dashboard-bar-zero: rgba(173, 210, 255, 0.18);
+  --dashboard-center-line: rgba(233, 243, 255, 0.9);
+
   /* Alineación Bootstrap */
   --bs-body-bg: var(--app-bg);
   --bs-body-color: var(--app-fg);
@@ -116,6 +142,12 @@ html[data-bs-theme='dark'] {
   --theme-toggle-border: rgba(233, 243, 255, 0.35);
   --theme-toggle-bg: rgba(233, 243, 255, 0.08);
   --theme-toggle-outline: rgba(233, 243, 255, 0.85);
+
+  /* Campana de notificaciones (tema oscuro) */
+  --notif-bell-bg: var(--theme-toggle-bg);
+  --notif-bell-border: rgba(233, 243, 255, 0.9);
+  --notif-bell-icon: #79aef7;
+  --notif-bell-icon-hover: #ffd400;
 }
 
 .theme-toggle-btn {
@@ -143,6 +175,22 @@ html[data-bs-theme='dark'] {
   transform: scale(var(--theme-toggle-hover-scale));
 }
 
+.notification-bell-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--notif-bell-border);
+  border-radius: 10px;
+  background: var(--notif-bell-bg);
+  color: var(--notif-bell-icon);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.notification-bell-btn:hover {
+  color: var(--notif-bell-icon-hover);
+  background: var(--notif-bell-bg);
+  border-color: var(--notif-bell-border);
+}
+
 /* Bootstrap: evitar blancos por defecto en formularios/superficies */
 .card {
   background-color: var(--app-surface);
@@ -159,7 +207,70 @@ html[data-bs-theme='dark'] {
 }
 
 .form-control::placeholder {
-  color: rgba(233, 243, 255, 0.65);
+  color: var(--bs-secondary-color);
+}
+
+.form-floating > label {
+  color: var(--bs-secondary-color);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: var(--app-fg);
+  opacity: 0.9;
+}
+
+.login-input-action {
+  z-index: 5;
+  color: var(--app-link);
+  text-decoration: none;
+  line-height: 1;
+  padding: 0.15rem 0.35rem;
+}
+
+.login-input-action:hover {
+  color: var(--app-link-hover);
+}
+
+/* Formularios de autenticacion: en modo claro evitar fondo azul en inputs */
+.auth-form .form-control {
+  background-color: rgba(255, 255, 255, 0.96);
+  color: #0b223f;
+  border-color: rgba(11, 34, 63, 0.22);
+}
+
+.auth-form .form-control::placeholder {
+  color: rgba(11, 34, 63, 0.56);
+}
+
+.auth-form .form-floating > label {
+  color: rgba(11, 34, 63, 0.7);
+}
+
+.auth-form .form-floating > .form-control:focus ~ label,
+.auth-form .form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: #0b223f;
+  opacity: 0.9;
+}
+
+html[data-bs-theme='dark'] .auth-form .form-control {
+  background-color: var(--app-surface-2);
+  color: var(--app-fg);
+  border-color: var(--bs-border-color);
+}
+
+html[data-bs-theme='dark'] .auth-form .form-control::placeholder {
+  color: var(--bs-secondary-color);
+}
+
+html[data-bs-theme='dark'] .auth-form .form-floating > label {
+  color: var(--bs-secondary-color);
+}
+
+html[data-bs-theme='dark'] .auth-form .form-floating > .form-control:focus ~ label,
+html[data-bs-theme='dark'] .auth-form .form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: var(--app-fg);
+  opacity: 0.9;
 }
 
 .form-control:focus,

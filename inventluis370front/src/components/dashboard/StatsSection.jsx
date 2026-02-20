@@ -24,12 +24,12 @@ const MODULES = [
 ];
 
 const BREAKPOINTS = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
-const COLS_BY_BREAKPOINT = { lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 };
-const ROW_HEIGHT = 30;
+const COLS_BY_BREAKPOINT = { lg: 24, md: 24, sm: 24, xs: 12, xxs: 12 };
+const ROW_HEIGHT = 24;
 
-const KPI_W = { lg: 3, md: 4, sm: 6, xs: 12, xxs: 12 };
-const LIST_W = { lg: 6, md: 6, sm: 12, xs: 12, xxs: 12 };
-const MODULE_W = { lg: 3, md: 4, sm: 6, xs: 12, xxs: 12 };
+const KPI_W = { lg: 6, md: 8, sm: 12, xs: 12, xxs: 12 };
+const LIST_W = { lg: 12, md: 12, sm: 24, xs: 12, xxs: 12 };
+const MODULE_W = { lg: 6, md: 8, sm: 12, xs: 12, xxs: 12 };
 
 const isObject = (v) => v && typeof v === 'object' && !Array.isArray(v);
 
@@ -45,6 +45,18 @@ function hForKind(kind) {
   return 8;
 }
 
+function minWForKind(kind) {
+  if (kind === 'kpi') return 3;
+  if (kind === 'list') return 6;
+  return 3;
+}
+
+function minHForKind(kind) {
+  if (kind === 'kpi') return 3;
+  if (kind === 'list') return 4;
+  return 5;
+}
+
 function safeJsonParse(s) {
   try {
     return JSON.parse(s);
@@ -56,9 +68,13 @@ function safeJsonParse(s) {
 function clampItem(item, cols) {
   const w = Math.max(1, Math.min(cols, Number(item?.w) || 1));
   const h = Math.max(1, Number(item?.h) || 1);
-  const x = Math.max(0, Math.min(cols - w, Number(item?.x) || 0));
+  const minW = Math.max(1, Math.min(cols, Number(item?.minW) || 1));
+  const minH = Math.max(1, Number(item?.minH) || 1);
+  const safeW = Math.max(minW, w);
+  const safeH = Math.max(minH, h);
+  const x = Math.max(0, Math.min(cols - safeW, Number(item?.x) || 0));
   const y = Math.max(0, Number(item?.y) || 0);
-  return { i: String(item?.i ?? ''), x, y, w, h };
+  return { i: String(item?.i ?? ''), x, y, w: safeW, h: safeH, minW, minH };
 }
 
 function buildPackedLayout(items, bp) {
@@ -70,6 +86,8 @@ function buildPackedLayout(items, bp) {
   return items.map((it) => {
     const w = Math.max(1, Math.min(cols, wForKind(it.kind, bp)));
     const h = hForKind(it.kind);
+    const minW = minWForKind(it.kind);
+    const minH = minHForKind(it.kind);
 
     if (cursorX + w > cols) {
       cursorX = 0;
@@ -77,7 +95,7 @@ function buildPackedLayout(items, bp) {
       rowMaxH = 0;
     }
 
-    const placed = { i: String(it.i), x: cursorX, y: cursorY, w, h };
+    const placed = { i: String(it.i), x: cursorX, y: cursorY, w, h, minW, minH };
     cursorX += w;
     rowMaxH = Math.max(rowMaxH, h);
     return placed;
@@ -290,7 +308,7 @@ export default function StatsSection({ cards = [], lists = {}, role }) {
 
   const effectiveRole = role || localStorage.getItem('rol_usuario') || '—';
   const userId = localStorage.getItem('id_usuario') || 'me';
-  const layoutKey = useMemo(() => `stats_rgl_unified_v1:${userId}:${effectiveRole}`, [userId, effectiveRole]);
+  const layoutKey = useMemo(() => `stats_rgl_unified_v2:${userId}:${effectiveRole}`, [userId, effectiveRole]);
 
   const items = useMemo(() => {
     const out = [];
@@ -341,7 +359,7 @@ export default function StatsSection({ cards = [], lists = {}, role }) {
     if (it.kind === 'kpi') {
       const c = it.data;
       return (
-        <Card sx={{ bgcolor: 'rgba(255,255,255,0.10)', color: '#fff', border: '1px solid rgba(255,255,255,0.12)', height: '100%', width: '100%' }}>
+        <Card sx={{ bgcolor: 'var(--dashboard-card-bg)', color: '#fff', border: '1px solid var(--dashboard-card-border)', height: '100%', width: '100%' }}>
           <CardContent sx={{ height: '100%', overflow: 'auto' }}>
             <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
               {c.title}
@@ -366,7 +384,7 @@ export default function StatsSection({ cards = [], lists = {}, role }) {
 
     if (it.kind === 'list' && it.i === 'list:repuestos_criticos') {
       return (
-        <Card sx={{ bgcolor: 'rgba(255,255,255,0.10)', color: '#fff', border: '1px solid rgba(255,255,255,0.12)', height: '100%', width: '100%' }}>
+        <Card sx={{ bgcolor: 'var(--dashboard-card-bg)', color: '#fff', border: '1px solid var(--dashboard-card-border)', height: '100%', width: '100%' }}>
           <CardContent sx={{ height: '100%', overflow: 'auto' }}>
             <Typography variant="subtitle2" sx={{ mb: 1, opacity: 0.9 }}>
               Repuestos críticos (top 10)
@@ -391,7 +409,7 @@ export default function StatsSection({ cards = [], lists = {}, role }) {
 
     if (it.kind === 'list' && it.i === 'list:notificaciones_recientes') {
       return (
-        <Card sx={{ bgcolor: 'rgba(255,255,255,0.10)', color: '#fff', border: '1px solid rgba(255,255,255,0.12)', height: '100%', width: '100%' }}>
+        <Card sx={{ bgcolor: 'var(--dashboard-card-bg)', color: '#fff', border: '1px solid var(--dashboard-card-border)', height: '100%', width: '100%' }}>
           <CardContent sx={{ height: '100%', overflow: 'auto' }}>
             <Typography variant="subtitle2" sx={{ mb: 1, opacity: 0.9 }}>
               Notificaciones recientes
@@ -414,9 +432,9 @@ export default function StatsSection({ cards = [], lists = {}, role }) {
   return (
     <Card
       sx={{
-        bgcolor: 'rgba(255,255,255,0.06)',
+        bgcolor: 'var(--dashboard-panel-bg)',
         color: '#fff',
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid var(--dashboard-card-border)',
         width: '100%',
         maxWidth: '100%',
         flex: 1,
@@ -473,6 +491,7 @@ export default function StatsSection({ cards = [], lists = {}, role }) {
                 preventCollision={true}
                 isDraggable={true}
                 isResizable={true}
+                resizeHandles={['se', 'e', 's']}
                 draggableCancel=".MuiButtonBase-root,input,textarea,select,option,a"
                 onDrag={(_layout, oldItem, newItem, placeholder) => {
                   // Movimiento solo horizontal: fijar Y.

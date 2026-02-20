@@ -77,19 +77,21 @@ export default function EmpresasList() {
                 <td>{empresa.email}</td>
                 {(canEdit || canDelete) && (
                   <td>
-                    {canEdit && (
-                      <button className="btn btn-sm btn-primary mb-2" onClick={() => navigate(`/empresas/${empresa.id_empresa}/editar`)}>
-                        Editar
-                      </button>
-                    )}
-                    {canDelete && (
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => { setEmpresaAEliminar(empresa.id_empresa); setConfirmOpen(true); }}
-                      >
-                        Eliminar
-                      </button>
-                    )}
+                    <div className="d-flex justify-content-center gap-2 flex-wrap">
+                      {canEdit && (
+                        <button className="btn btn-sm btn-primary" onClick={() => navigate(`/empresas/${empresa.id_empresa}/editar`)}>
+                          Editar
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => { setEmpresaAEliminar(empresa.id_empresa); setConfirmOpen(true); }}
+                        >
+                          Eliminar
+                        </button>
+                      )}
+                    </div>
                   </td>
                 )}
               </tr>

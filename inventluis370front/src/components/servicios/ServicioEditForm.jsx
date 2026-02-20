@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { getServicio, updateServicio } from '../../services/servicios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getRMAs } from '../../services/rma';
@@ -9,6 +9,9 @@ import ServicePartsPanel from '../../components/ServicePartsPanel';
 const ServicioEditForm = () => {
   const { id } = useParams();
   const rol = localStorage.getItem('rol_usuario');
+  const isTecnico = rol === 'Tecnico' || rol === 'Técnico' || rol === 'Tecnico';
+  const isGerente = rol === 'Gerente';
+  const isAdmin = rol === 'Administrador';
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const [rmas, setRMAs] = useState([]);
@@ -37,8 +40,16 @@ const ServicioEditForm = () => {
       setEquipos(equiposData);
 
       const servicio = await getServicio(id);
+      const rawEquipoId = String(servicio.id_equipo ?? '');
+      const equipoMatch = equiposData.find((eq) => {
+        const businessId = String(eq?.id_equipo ?? '');
+        const mongoId = String(eq?._id ?? '');
+        return rawEquipoId !== '' && (businessId === rawEquipoId || mongoId === rawEquipoId);
+      });
+      const resolvedEquipoId = String(equipoMatch?.id_equipo ?? servicio.id_equipo ?? '');
+
       setForm({
-        id_equipo: servicio.id_equipo ?? '',
+        id_equipo: resolvedEquipoId,
         codigo_rma: servicio.codigo_rma ?? '',
         fecha_ingreso: servicio.fecha_ingreso
           ? servicio.fecha_ingreso.match(/^\d{4}-\d{2}-\d{2}/)?.[0]
@@ -71,28 +82,24 @@ const ServicioEditForm = () => {
 
   return (
     <div className="container py-4">
-      <form onSubmit={handleSubmit} className="card p-4 mx-auto" style={{ width: "100%", maxWidth: "80%" }}>
+      <form onSubmit={handleSubmit} className="card p-4 mx-auto" style={{ width: "100%", maxWidth: "680px" }}>
         <h2 className="text-center mb-4">Editar Servicio</h2>
         <div className="mb-3">
           <label className="form-label">Equipo</label>
-          {(() => {
-            const equipo = equipos.find(e => e.id_equipo === form.id_equipo);
-            return equipo ? (
-              <input
-                name="id_equipo"
-                className="form-control"
-                value={`${equipo.tipo_equipo} - ${equipo.marca} - ${equipo.modelo}`}
-                disabled
-              />
-            ) : (
-              <input
-                name="id_equipo"
-                className="form-control"
-                value=""
-                disabled
-              />
-            );
-          })()}
+          <select
+            name="id_equipo"
+            className="form-select"
+            value={form.id_equipo}
+            onChange={handleChange}
+            required
+          >
+            <option value="" disabled>Seleccione un equipo</option>
+            {equipos.map((equipo) => (
+              <option key={String(equipo.id_equipo ?? equipo._id)} value={String(equipo.id_equipo ?? '')}>
+                {equipo.tipo_equipo} - {equipo.marca} - {equipo.modelo}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="mb-3">
           <label className="form-label">Usuario</label>
@@ -140,7 +147,7 @@ const ServicioEditForm = () => {
             name="fecha_ingreso"
             type="date"
             className="form-control"
-            placeholder="Código RMA"
+            placeholder="Codigo RMA"
             required
             value={form.fecha_ingreso}
             disabled
@@ -172,7 +179,7 @@ const ServicioEditForm = () => {
             <option value="Finalizado">Finalizado</option>
           </select>
         </div>
-        {(rol === 'Técnico' || rol === 'Gerente' || rol === 'Administrador') && (
+        {(isTecnico || isGerente || isAdmin) && (
           <div className="mb-3">
             <label className="form-label">Costo Estimado</label>
             <input
@@ -182,11 +189,11 @@ const ServicioEditForm = () => {
               value={form.costo_estimado}
               onChange={handleChange}
               placeholder="Costo Estimado"
-              disabled={!(rol === 'Gerente' || rol === 'Administrador')}
+              disabled={!(isGerente || isAdmin)}
             />
           </div>
         )}
-        {(rol === 'Gerente' || rol === 'Administrador') && (
+        {(isGerente || isAdmin) && (
           <div className="mb-3">
             <label className="form-label">Costo Real</label>
             <input
@@ -199,7 +206,7 @@ const ServicioEditForm = () => {
             />
           </div>
         )}
-        {(rol === 'Gerente' || rol === 'Administrador') && (
+        {(isGerente || isAdmin) && (
           <div className="form-check mb-3">
             <input
               name="validado_por_gerente"
@@ -220,12 +227,12 @@ const ServicioEditForm = () => {
         </div>
         {error && <div className="alert alert-danger mt-3">{error}</div>}
       </form>
-      {(rol === 'Administrador' || rol === 'Gerente' || rol === 'Técnico') && (
+      {(isAdmin || isGerente || isTecnico) && (
         <div className="mt-4">
           <ServicePartsPanel servicioId={id} />
           <div className="text-end mt-2">
             <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => navigate(`/servicios/${id}/partes`)}>
-              Abrir en página completa
+              Abrir en pagina completa
             </button>
           </div>
         </div>
@@ -235,3 +242,4 @@ const ServicioEditForm = () => {
 };
 
 export default ServicioEditForm;
+

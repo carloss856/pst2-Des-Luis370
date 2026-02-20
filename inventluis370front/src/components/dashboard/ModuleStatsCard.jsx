@@ -1,7 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Card, CardContent, Typography, Box, Chip, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import MiniBars from './MiniBars';
 import { getModuleStatsCached } from '../../services/stats';
+
+const PERIOD_LABELS = {
+  day: 'Dia',
+  week: 'Semana',
+  month: 'Mes',
+  year: 'Ano',
+};
 
 export default function ModuleStatsCard({ title, moduleKey }) {
   const [period, setPeriod] = useState('month');
@@ -37,6 +44,8 @@ export default function ModuleStatsCard({ title, moduleKey }) {
   const total = stats?.total ?? 0;
   const buckets = Array.isArray(stats?.buckets) ? stats.buckets.slice(-12) : [];
   const apiPeriod = stats?.period;
+  const apiPeriodLabel = apiPeriod ? PERIOD_LABELS[apiPeriod] || apiPeriod : null;
+  const totalNumber = Number(total) || 0;
 
   return (
     <Card
@@ -50,9 +59,9 @@ export default function ModuleStatsCard({ title, moduleKey }) {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        bgcolor: 'rgba(255,255,255,0.10)',
+        bgcolor: 'var(--dashboard-card-bg)',
         color: '#fff',
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid var(--dashboard-card-border)',
       }}
     >
       <CardContent sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -60,7 +69,7 @@ export default function ModuleStatsCard({ title, moduleKey }) {
           <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
             {title}
           </Typography>
-          {apiPeriod && <Chip size="small" label={apiPeriod} sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: '#fff' }} />}
+          {apiPeriodLabel && <Chip size="small" label={apiPeriodLabel} sx={{ bgcolor: 'var(--dashboard-chip-bg)', color: '#fff' }} />}
         </Box>
 
         <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
@@ -70,15 +79,27 @@ export default function ModuleStatsCard({ title, moduleKey }) {
             onChange={(_, v) => v && setPeriod(v)}
             size="small"
             sx={{
-              bgcolor: 'rgba(255,255,255,0.10)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              '& .MuiToggleButton-root': { color: '#fff', borderColor: 'rgba(255,255,255,0.12)' },
+              bgcolor: 'var(--dashboard-control-bg)',
+              border: '1px solid var(--dashboard-card-border)',
+              '& .MuiToggleButton-root': {
+                color: '#fff',
+                borderColor: 'var(--dashboard-card-border)',
+                textTransform: 'none',
+                fontWeight: 600,
+              },
+              '& .MuiToggleButton-root.Mui-selected': {
+                color: '#fff',
+                bgcolor: 'var(--app-nav-active-bg)',
+              },
+              '& .MuiToggleButton-root.Mui-selected:hover': {
+                bgcolor: 'var(--app-nav-active-hover-bg)',
+              },
             }}
           >
-            <ToggleButton value="day">Día</ToggleButton>
+            <ToggleButton value="day">Dia</ToggleButton>
             <ToggleButton value="week">Semana</ToggleButton>
             <ToggleButton value="month">Mes</ToggleButton>
-            <ToggleButton value="year">Año</ToggleButton>
+            <ToggleButton value="year">Ano</ToggleButton>
           </ToggleButtonGroup>
         </Box>
 
@@ -89,7 +110,7 @@ export default function ModuleStatsCard({ title, moduleKey }) {
         <Box sx={{ mt: 1.25, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           {loading ? (
             <Typography variant="body2" sx={{ opacity: 0.85 }}>
-              Cargando…
+              Cargando...
             </Typography>
           ) : error ? (
             <Typography variant="body2" sx={{ color: '#ffd1d1' }}>
@@ -101,14 +122,14 @@ export default function ModuleStatsCard({ title, moduleKey }) {
             </Typography>
           ) : (
             <Box sx={{ flex: 1, minHeight: 0 }}>
-              <MiniBars buckets={buckets} />
+              <MiniBars buckets={buckets} showCenterLine={true} centerLineVisible={totalNumber > 0} />
             </Box>
           )}
         </Box>
 
         {buckets.length > 0 && (
           <Typography variant="caption" sx={{ opacity: 0.75, flexShrink: 0 }}>
-            Últimos {buckets.length} puntos
+            Ultimos {buckets.length} puntos
           </Typography>
         )}
       </CardContent>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { getEquipo, updateEquipo } from '../../services/equipos';
 import { getUsuarios } from '../../services/usuarios';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -71,11 +71,11 @@ const EquipoEditForm = () => {
 
   const puedeEditarAsignado = rol === "Administrador" || rol === "Gerente";
 
-  if (loading) return <LoadingView message="Cargando equipo…" />;
+  if (loading) return <LoadingView message="Cargando equipo..." />;
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-      <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "80%" }}>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "680px" }}>
         <h2 className="text-center mb-4">Editar Equipo</h2>
         <div className="mb-3">
           <label>Tipo de Equipo</label>

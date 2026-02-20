@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import api from '../services/api';
-import logo from "../assets/Logo_Luis370.png";
-import FloatingInput from "../components/FloatingInput";
+import logo from '../assets/Logo_Luis370.png';
+import FloatingInput from '../components/FloatingInput';
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [contrasena, setContrasena] = useState('');
+  const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
@@ -29,32 +30,37 @@ export default function Login({ onLogin }) {
 
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center h-100">
-      <img className='mb-4' src={logo} alt="Logo" style={{ maxWidth: 420, marginBottom: 20, borderRadius: 20, width: '100%' }} />
-      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: 420, width: "100%" }}>
-        <h2 className="text-center mb-4">Iniciar sesión</h2>
+      <img className="mb-4" src={logo} alt="Logo" style={{ maxWidth: 420, marginBottom: 20, borderRadius: 20, width: '100%' }} />
+      <form onSubmit={handleSubmit} className="card p-4 auth-form" style={{ maxWidth: 420, width: '100%' }}>
+        <h2 className="text-center mb-4">Iniciar sesion</h2>
         <FloatingInput
           id="email"
           label="Correo"
           type="email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="username"
         />
         <FloatingInput
-          className="bg-light"
           id="contrasena"
-          label="Contraseña"
-          type="password"
+          label="Contrasena"
+          type={mostrarContrasena ? 'text' : 'password'}
           value={contrasena}
-          onChange={e => setContrasena(e.target.value)}
+          onChange={(e) => setContrasena(e.target.value)}
           required
           autoComplete="current-password"
+          actionButton={{
+            text: mostrarContrasena ? 'Ocultar' : 'Mostrar',
+            onClick: () => setMostrarContrasena((v) => !v),
+            title: mostrarContrasena ? 'Ocultar contrasena' : 'Mostrar contrasena',
+            ariaLabel: mostrarContrasena ? 'Ocultar contrasena' : 'Mostrar contrasena',
+          }}
         />
-        <button type="submit" className="btn btn-primary w-100 mb-2">Iniciar sesión</button>
+        <button type="submit" className="btn btn-primary w-100 mb-2">Iniciar sesion</button>
         {error && <div className="alert alert-danger mt-2">{error}</div>}
-        <button type="button" className="btn btn-link" onClick={() => (window.location.href = "/forgot-password")}>
-          ¿Olvidaste tu contraseña?
+        <button type="button" className="btn btn-link" onClick={() => (window.location.href = '/forgot-password')}>
+          Olvidaste tu contrasena?
         </button>
       </form>
     </div>

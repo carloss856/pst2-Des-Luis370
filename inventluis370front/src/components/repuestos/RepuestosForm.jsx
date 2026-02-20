@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createRepuesto, getRepuestos } from '../../services/repuestos';
 
@@ -36,7 +36,7 @@ export default function RepuestoForm() {
 
     return (
         <div className="container d-flex justify-content-center align-items-center h-100">
-            <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "80%" }}>
+            <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "680px" }}>
                 <h2 className="text-center mb-4">Crear Repuesto</h2>
                 <div className="mb-3">
                     <label htmlFor="nombre_repuesto">Nombre</label>
@@ -75,12 +75,12 @@ export default function RepuestoForm() {
                     />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="nivel_critico">Nivel Crítico</label>
+                    <label htmlFor="nivel_critico">Nivel Critico</label>
                     <input
                         name="nivel_critico"
                         type="number"
                         className="form-control"
-                        placeholder="Nivel Crítico"
+                        placeholder="Nivel Critico"
                         value={form.nivel_critico}
                         onChange={handleChange}
                         required
@@ -93,3 +93,4 @@ export default function RepuestoForm() {
         </div>
     );
 }
+

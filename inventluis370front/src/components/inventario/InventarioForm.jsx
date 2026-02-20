@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createEntrada } from '../../services/inventario';
 import { getRepuestos, getRepuesto, updateRepuesto } from '../../services/repuestos';
@@ -51,7 +51,7 @@ export default function InventarioForm() {
 
     return (
         <div className="container d-flex justify-content-center align-items-center h-100">
-            <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "80%" }}>
+            <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "680px" }}>
                 <h2 className="text-center mb-4">Entrada de mercancia</h2>
                 <label htmlFor="id_repuesto">Repuesto</label>
                 <select className="mb-3" onChange={handleChange} name="id_repuesto" value={form.id_repuesto} required>

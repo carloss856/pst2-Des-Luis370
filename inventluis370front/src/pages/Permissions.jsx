@@ -44,7 +44,6 @@ const MENU_MODULES_ORDER = [
   'solicitud-repuestos',
   'garantias',
   'reportes',
-  'notificaciones',
   'tarifas-servicio',
 ];
 

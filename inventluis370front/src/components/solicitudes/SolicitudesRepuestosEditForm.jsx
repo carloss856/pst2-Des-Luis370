@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSolicitud, updateSolicitud } from "../../services/solicitudesRepuestos";
 import { getRepuestos } from "../../services/repuestos";
@@ -107,7 +107,7 @@ function SolicitudesRepuestosEditForm() {
 
     return (
         <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-            <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "80%", width: "100%" }}>
+            <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "680px", width: "100%" }}>
                 <h2 className="text-center mb-4">Editar Solicitud de Repuesto</h2>
                 {error && <div className="alert alert-danger">{error}</div>}
 

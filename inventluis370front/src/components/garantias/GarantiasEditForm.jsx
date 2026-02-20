@@ -1,8 +1,18 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getGarantia, updateGarantia } from '../../services/garantias';
 import { getServicios } from '../../services/servicios';
 import LoadingView from "../LoadingView";
+
+function toInputDate(value) {
+  if (!value) return '';
+  const raw = String(value).trim();
+  const isoMatch = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoMatch) return isoMatch[1];
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toISOString().slice(0, 10);
+}
 
 export default function GarantiaEditForm() {
   const { id } = useParams();
@@ -19,7 +29,6 @@ export default function GarantiaEditForm() {
     validado_por_gerente: false,
   });
   const [servicios, setServicios] = useState([]);
-  const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,15 +49,15 @@ export default function GarantiaEditForm() {
         }
 
         setForm({
-          servicio: data.id_servicio || '',
-          fecha_inicio: data.fecha_inicio || '',
-          fecha_fin: data.fecha_fin || '',
+          servicio: data.id_servicio || data.servicio || '',
+          fecha_inicio: toInputDate(data.fecha_inicio),
+          fecha_fin: toInputDate(data.fecha_fin),
           observaciones: data.observaciones || '',
           validado_por_gerente: !!data.validado_por_gerente,
         });
         setLoading(false);
       } catch (err) {
-        // Si la garantía no existe o hay error, redirige
+        // Si la Garantia no existe o hay error, redirige
         navigate('/garantias');
       }
     };
@@ -66,19 +75,23 @@ export default function GarantiaEditForm() {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
-      await updateGarantia(id, form);
+      await updateGarantia(id, {
+        ...form,
+        fecha_inicio: toInputDate(form.fecha_inicio),
+        fecha_fin: toInputDate(form.fecha_fin),
+      });
       navigate('/garantias');
     } catch {
       
     }
   };
 
-  if (loading) return <LoadingView message="Cargando garantía…" />;
+  if (loading) return <LoadingView message="Cargando Garantia..." />;
 
   return (
     <div className="container d-flex justify-content-center align-items-center h-100">
-      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "80%", width: "100%" }}>
-        <h2 className="text-center mb-4">Editar Garantía</h2>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ maxWidth: "680px", width: "100%" }}>
+        <h2 className="text-center mb-4">Editar Garantia</h2>
         {/* Servicio */}
         <div className="mb-3">
           <label className="form-label">Servicio</label>
@@ -146,9 +159,10 @@ export default function GarantiaEditForm() {
             Validado por gerente
           </label>
         </div>
-        <button type="submit" className="btn btn-primary w-100">Actualizar Garantía</button>
+        <button type="submit" className="btn btn-primary w-100">Actualizar Garantia</button>
         <button type="button" className="btn btn-secondary w-100 mt-2" onClick={() => navigate('/garantias')}>Volver</button>
       </form>
     </div>
   );
 }
+

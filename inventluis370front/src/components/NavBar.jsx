@@ -10,7 +10,6 @@ import PeopleIcon from "@mui/icons-material/People";
 import BuildIcon from "@mui/icons-material/Build";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import ReportIcon from "@mui/icons-material/Assessment";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import { Link, useLocation } from "react-router-dom";
@@ -39,7 +38,6 @@ function SidebarContent({ location, rol, handleLogout, onClose, rbac, rbacLoadin
 
   const linksAdministracion = [
     { to: "/usuarios", label: "Usuarios del Sistema", icon: <PeopleIcon />, module: 'usuarios' },
-    { to: "/notificaciones", label: "Notificaciones", icon: <NotificationsIcon />, module: 'notificaciones' },
     { to: "/tarifas-servicio", label: "Tarifas de Servicio", icon: <BuildIcon />, module: 'tarifas-servicio' },
     { to: "/reportes", label: "Reportes", icon: <ReportIcon />, module: 'reportes' },
     { to: "/permisos", label: "Permisos", icon: <AdminPanelSettingsIcon />, routeName: 'permissions.index' },

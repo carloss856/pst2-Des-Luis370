@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getRepuesto, updateRepuesto } from '../../services/repuestos';
 
@@ -26,7 +26,7 @@ export default function RepuestoEditForm() {
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-      <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "80%" }}>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "680px" }}>
         <h2 className="text-center mb-4">Editar Repuesto</h2>
         <div className="mb-3">
           <label htmlFor="nombre_repuesto">Nombre</label>
@@ -53,12 +53,12 @@ export default function RepuestoEditForm() {
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="nivel_critico">Nivel Crítico</label>
+          <label htmlFor="nivel_critico">Nivel Critico</label>
           <input
             name="nivel_critico"
             type="number"
             className="form-control"
-            placeholder="Nivel Crítico"
+            placeholder="Nivel Critico"
             value={form.nivel_critico}
             onChange={handleChange}
             required
@@ -83,3 +83,4 @@ export default function RepuestoEditForm() {
     </div>
   );
 }
+

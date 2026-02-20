@@ -1,7 +1,8 @@
-import React from "react";
+﻿import React from "react";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import NavBar from "./components/NavBar";
+import NotificationBell from "./components/NotificationBell";
 import LoadingView from "./components/LoadingView";
 import {
   BrowserRouter,
@@ -90,7 +91,7 @@ function PrivateRoute({ children, roles, module, action, routeName, rbac, rbacLo
 
   if ((module && action) || routeName) {
     if (rbacLoading) {
-      return <LoadingView message="Cargando permisos…" />;
+      return <LoadingView message="Cargando permisosâ€¦" />;
     }
 
     const ok = routeName
@@ -295,7 +296,7 @@ function AppContent({ rbac, rbacLoading }) {
         <Route
           path="/notificaciones"
           element={
-            <PrivateRoute module="notificaciones" action="index" rbac={rbac} rbacLoading={rbacLoading}>
+            <PrivateRoute>
               <Notificaciones />
             </PrivateRoute>
           }
@@ -396,7 +397,7 @@ function App() {
         setRbacCache(data);
       })
       .catch(() => {
-        // Si ya había RBAC cacheado, mantenemos el último conocido (carga pasiva).
+        // Si ya habÃ­a RBAC cacheado, mantenemos el Ãºltimo conocido (carga pasiva).
         if (shouldBlock) {
           setRbac(null);
           setRbacCache(null);
@@ -427,20 +428,23 @@ function App() {
   return (
     <BrowserRouter>
       <CssBaseline />
-      <React.Suspense fallback={<LoadingView message="Cargando módulo…" />}>
+      <React.Suspense fallback={<LoadingView message="Cargando mÃ³duloâ€¦" />}>
         <div className="position-fixed top-0 end-0 p-2" style={{ zIndex: 2000 }}>
-          <button
-            type="button"
-            className="theme-toggle-btn"
-            onClick={toggleThemeMode}
-            title={themeMode === 'dark' ? 'Cambiar a modo diurno' : 'Cambiar a modo nocturno'}
-            aria-label={themeMode === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-          >
-            <i
-              className={`bi ${themeMode === 'dark' ? 'bi-sun-fill' : 'bi-moon-stars-fill'}`}
-              aria-hidden="true"
-            />
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {isLogged && <NotificationBell />}
+            <button
+              type="button"
+              className="theme-toggle-btn"
+              onClick={toggleThemeMode}
+              title={themeMode === 'dark' ? 'Cambiar a modo diurno' : 'Cambiar a modo nocturno'}
+              aria-label={themeMode === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            >
+              <i
+                className={`bi ${themeMode === 'dark' ? 'bi-sun-fill' : 'bi-moon-stars-fill'}`}
+                aria-hidden="true"
+              />
+            </button>
+          </div>
         </div>
         {isLogged ? (
           <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, height: "100dvh", minHeight: 0, bgcolor: "var(--app-bg)" }}>
@@ -482,3 +486,4 @@ function App() {
 }
 
 export default App;
+

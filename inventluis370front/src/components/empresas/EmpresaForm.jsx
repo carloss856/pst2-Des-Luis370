@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { createEmpresa } from '../../services/empresas';
 import { useNavigate } from 'react-router-dom';
 import ModalAlert from '../ModalAlert';
@@ -33,7 +33,7 @@ const EmpresaForm = () => {
 
     return (
         <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-            <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "80%" }}>
+            <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "680px" }}>
                 <h2 className="text-center mb-4">Nueva empresa</h2>
                 <div className="mb-3">
                     <label htmlFor="nombre_empresa">Nombre de la Empresa</label>
@@ -47,23 +47,23 @@ const EmpresaForm = () => {
                     />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="direccion">Dirección</label>
+                    <label htmlFor="direccion">Direccion</label>
                     <input
                         className="form-control"
                         value={form.direccion}
                         onChange={handleChange}
                         name="direccion"
-                        placeholder="Dirección"
+                        placeholder="Direccion"
                     />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="telefono">Teléfono</label>
+                    <label htmlFor="telefono">Telefono</label>
                     <input
                         className="form-control"
                         value={form.telefono}
                         onChange={handleChange}
                         name="telefono"
-                        placeholder="Teléfono"
+                        placeholder="Telefono"
                     />
                 </div>
                 <div className="mb-3">
@@ -89,3 +89,4 @@ const EmpresaForm = () => {
 };
 
 export default EmpresaForm;
+

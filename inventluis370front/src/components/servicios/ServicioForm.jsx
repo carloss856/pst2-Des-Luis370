@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { createServicio } from '../../services/servicios';
 import { getEquipos } from '../../services/equipos';
 import { useNavigate } from 'react-router-dom';
@@ -43,7 +43,7 @@ const ServicioForm = () => {
 
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-      <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "80%" }}>
+      <form onSubmit={handleSubmit} className="card p-4" style={{ width: "100%", maxWidth: "680px" }}>
         <h2 className="text-center mb-4">Nuevo Servicio</h2>
         <div className="mb-3">
           <label className="form-label">Equipo</label>
@@ -71,7 +71,7 @@ const ServicioForm = () => {
             onChange={handleChange}
             required
           >
-            <option value="" disabled>Seleccione una opción</option>
+            <option value="" disabled>Seleccione una opcion</option>
             {rmas.map(rma => {
               const users = usuarios.find(u => u.id_persona === rma.id_persona);
               return (
@@ -130,3 +130,4 @@ const ServicioForm = () => {
 };
 
 export default ServicioForm;
+
