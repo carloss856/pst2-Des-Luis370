@@ -1,15 +1,15 @@
 import React, { useEffect } from "react";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
-export default function ModalAlert({ type = "success", message, onClose }) {
+export default function ModalAlert({ type = "success", message, onClose, autoCloseMs = 5000, closeOnBackdropClick = false }) {
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => {
         onClose && onClose();
-      }, 5000);
+      }, autoCloseMs);
       return () => clearTimeout(timer);
     }
-  }, [message, onClose]);
+  }, [message, onClose, autoCloseMs]);
 
   if (!message) return null;
 
@@ -23,10 +23,11 @@ export default function ModalAlert({ type = "success", message, onClose }) {
         top: 0, left: 0, width: "100vw", height: "100vh",
         zIndex: 1055
       }}
+      onClick={closeOnBackdropClick ? () => onClose && onClose() : undefined}
       tabIndex="-1"
       role="dialog"
     >
-      <div className="modal-dialog modal-dialog-centered">
+      <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
         <div className="modal-content border-0 shadow">
           <div className="modal-body d-flex align-items-center">
             {type === "success" ? (

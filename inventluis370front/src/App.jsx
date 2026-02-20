@@ -9,6 +9,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import { getMyRbac } from "./services/rbac";
 import { canModule, canRoute, getRbacCache, setRbacCache } from "./utils/rbac";
@@ -103,6 +104,20 @@ function PrivateRoute({ children, roles, module, action, routeName, rbac, rbacLo
   return <>{children}</>;
 }
 function AppContent({ rbac, rbacLoading }) {
+  const location = useLocation();
+  const [refreshKey, setRefreshKey] = React.useState(0);
+
+  React.useEffect(() => {
+    const handler = (event) => {
+      const targetPath = event?.detail?.path;
+      if (!targetPath || location.pathname.startsWith(targetPath)) {
+        setRefreshKey((prev) => prev + 1);
+      }
+    };
+    window.addEventListener('app:module-refresh', handler);
+    return () => window.removeEventListener('app:module-refresh', handler);
+  }, [location.pathname]);
+
   return (
     <Box
       className="app-content"
@@ -116,7 +131,7 @@ function AppContent({ rbac, rbacLoading }) {
         overflowX: "hidden"
       }}
     >
-      <Routes>
+      <Routes key={`${location.pathname}:${refreshKey}`}>
         <Route
           path="/login"
           element={
@@ -178,6 +193,14 @@ function AppContent({ rbac, rbacLoading }) {
           element={
             <PrivateRoute module="usuarios" action="update" rbac={rbac} rbacLoading={rbacLoading}>
               <UsuarioEditForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/mi-perfil"
+          element={
+            <PrivateRoute>
+              <UsuarioEditForm selfOnly />
             </PrivateRoute>
           }
         />

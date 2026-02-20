@@ -219,8 +219,8 @@ function RecentNotifications({ notifications }) {
               <ListItemText
                 primary={n.asunto || n.id_notificacion}
                 secondary={`${n.estado_envio || '—'}${n.fecha_envio ? ` | ${new Date(n.fecha_envio).toLocaleString()}` : ''}`}
-                primaryTypographyProps={{ sx: { color: '#fff' } }}
-                secondaryTypographyProps={{ sx: { color: 'rgba(255,255,255,0.75)' } }}
+                primaryTypographyProps={{ sx: { color: 'var(--dashboard-text)' } }}
+                secondaryTypographyProps={{ sx: { color: 'var(--dashboard-muted)' } }}
               />
             </ListItem>
           ))}
@@ -248,7 +248,7 @@ function RecentNotifications({ notifications }) {
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#fff',
+                  color: 'var(--dashboard-text)',
                   flex: 1,
                   minWidth: 0,
                   whiteSpace: 'nowrap',
@@ -263,7 +263,7 @@ function RecentNotifications({ notifications }) {
               <Typography
                 variant="caption"
                 sx={{
-                  color: 'rgba(255,255,255,0.75)',
+                  color: 'var(--dashboard-muted)',
                   flexShrink: 0,
                   textAlign: 'right',
                   whiteSpace: 'nowrap',
@@ -359,7 +359,7 @@ export default function StatsSection({ cards = [], lists = {}, role }) {
     if (it.kind === 'kpi') {
       const c = it.data;
       return (
-        <Card sx={{ bgcolor: 'var(--dashboard-card-bg)', color: '#fff', border: '1px solid var(--dashboard-card-border)', height: '100%', width: '100%' }}>
+        <Card sx={{ bgcolor: 'var(--dashboard-card-bg)', color: 'var(--dashboard-text)', border: '1px solid var(--dashboard-card-border)', height: '100%', width: '100%' }}>
           <CardContent sx={{ height: '100%', overflow: 'auto' }}>
             <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
               {c.title}
@@ -384,20 +384,20 @@ export default function StatsSection({ cards = [], lists = {}, role }) {
 
     if (it.kind === 'list' && it.i === 'list:repuestos_criticos') {
       return (
-        <Card sx={{ bgcolor: 'var(--dashboard-card-bg)', color: '#fff', border: '1px solid var(--dashboard-card-border)', height: '100%', width: '100%' }}>
+        <Card sx={{ bgcolor: 'var(--dashboard-card-bg)', color: 'var(--dashboard-text)', border: '1px solid var(--dashboard-card-border)', height: '100%', width: '100%' }}>
           <CardContent sx={{ height: '100%', overflow: 'auto' }}>
             <Typography variant="subtitle2" sx={{ mb: 1, opacity: 0.9 }}>
               Repuestos críticos (top 10)
             </Typography>
-            <Divider sx={{ bgcolor: 'rgba(255,255,255,0.2)', mb: 1 }} />
+            <Divider sx={{ bgcolor: 'var(--dashboard-card-border)', mb: 1 }} />
             <List dense>
               {lists.repuestos_criticos.map((r) => (
                 <ListItem key={r.id_repuesto} disableGutters>
                   <ListItemText
                     primary={`${r.nombre_repuesto || r.id_repuesto}`}
                     secondary={`Stock: ${r.cantidad_disponible ?? '—'} | Crítico: ${r.nivel_critico ?? '—'}`}
-                    primaryTypographyProps={{ sx: { color: '#fff' } }}
-                    secondaryTypographyProps={{ sx: { color: 'rgba(255,255,255,0.75)' } }}
+                    primaryTypographyProps={{ sx: { color: 'var(--dashboard-text)' } }}
+                    secondaryTypographyProps={{ sx: { color: 'var(--dashboard-muted)' } }}
                   />
                 </ListItem>
               ))}
@@ -409,12 +409,12 @@ export default function StatsSection({ cards = [], lists = {}, role }) {
 
     if (it.kind === 'list' && it.i === 'list:notificaciones_recientes') {
       return (
-        <Card sx={{ bgcolor: 'var(--dashboard-card-bg)', color: '#fff', border: '1px solid var(--dashboard-card-border)', height: '100%', width: '100%' }}>
+        <Card sx={{ bgcolor: 'var(--dashboard-card-bg)', color: 'var(--dashboard-text)', border: '1px solid var(--dashboard-card-border)', height: '100%', width: '100%' }}>
           <CardContent sx={{ height: '100%', overflow: 'auto' }}>
             <Typography variant="subtitle2" sx={{ mb: 1, opacity: 0.9 }}>
               Notificaciones recientes
             </Typography>
-            <Divider sx={{ bgcolor: 'rgba(255,255,255,0.2)', mb: 1 }} />
+            <Divider sx={{ bgcolor: 'var(--dashboard-card-border)', mb: 1 }} />
             <RecentNotifications notifications={lists.notificaciones_recientes} />
           </CardContent>
         </Card>
@@ -433,7 +433,7 @@ export default function StatsSection({ cards = [], lists = {}, role }) {
     <Card
       sx={{
         bgcolor: 'var(--dashboard-panel-bg)',
-        color: '#fff',
+        color: 'var(--dashboard-text)',
         border: '1px solid var(--dashboard-card-border)',
         width: '100%',
         maxWidth: '100%',

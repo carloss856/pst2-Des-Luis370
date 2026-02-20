@@ -52,13 +52,22 @@ function SidebarContent({ location, rol, handleLogout, onClose, rbac, rbacLoadin
     return false;
   };
 
+  const handleModuleClick = (event, link) => {
+    const isCurrent = location.pathname.startsWith(link.to);
+    if (isCurrent) {
+      event.preventDefault();
+      window.dispatchEvent(new CustomEvent('app:module-refresh', { detail: { path: link.to, at: Date.now() } }));
+    }
+    if (onClose) onClose();
+  };
+
   const renderLinks = (links) => links.filter(isLinkAllowed).map(link => (
     <ListItem key={link.to} disablePadding sx={{ width: "100%" }}>
       <ListItemButton
         component={Link}
         to={link.to}
         selected={location.pathname.startsWith(link.to)}
-        onClick={onClose}
+        onClick={(event) => handleModuleClick(event, link)}
         sx={{
           width: "100%",
           alignItems: "flex-start",
@@ -112,13 +121,15 @@ function SidebarContent({ location, rol, handleLogout, onClose, rbac, rbacLoadin
       <List sx={{ py: 0.5 }}>
         <ListItem disablePadding>
           <ListItemButton
-            disabled
+            component={Link}
+            to="/mi-perfil"
+            onClick={onClose}
             sx={{
               width: "100%",
               color: "#fff",
               px: 2,
               py: 1,
-              "&.Mui-disabled": { opacity: 1 }
+              "&:hover": { bgcolor: "var(--app-nav-hover-bg)" }
             }}
           >
             <ListItemIcon sx={{ minWidth: 36, color: "#fff" }}>

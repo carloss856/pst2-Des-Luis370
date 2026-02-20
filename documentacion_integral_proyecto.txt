@@ -1433,5 +1433,12 @@ Fecha: 2026-02-20
 8. Notificaciones web: en frontend la ruta `/notificaciones` se dejo sin validacion RBAC por modulo para permitir acceso comun a todos los usuarios autenticados.
 9. Notificaciones web: se corrigio contraste visual de la campana con variables especificas por tema (claro/oscuro), mejorando legibilidad del icono, borde y fondo.
 10. Notificaciones web: se ajusto estilo de campana con el mismo fondo del toggle de tema, borde blanco visible, hover amarillo y color de icono por tema (azul oscuro en claro, azul medio claro en oscuro).
+11. Dashboard y notificaciones web: se ajusto el contraste de textos para modo claro (texto oscuro en tarjetas y popup de notificaciones) y en el popup las acciones 'Visto'/'Leer todas' ahora muestran carga interna sin recargar la ventana.
+12. Dashboard y notificaciones web: las mini graficas de tarjetas se cambiaron a area rellena tipo montana con tono mas oscuro por tema, y en el popup los botones `Leer todas` y `Ver todas` usan texto oscuro en fondo claro para mejor legibilidad.
+13. Formularios web (crear/editar): en modo claro se corrigio estilo global para mostrar cards e inputs con fondo claro y texto oscuro (incluyendo labels/placeholder), manteniendo modo oscuro con su esquema original.
+14. Usuarios web: se habilito `Mi perfil` en el boton de usuario del menu (ruta `/mi-perfil`) reutilizando `UsuarioEditForm` en modo propio, con carga forzada del usuario en sesion para editar solo sus datos y sin permitir cambio de rol/estado desde esa vista.
+15. Usuarios web (Mi perfil): se corrigio el guardado para enviar `tipo`/`estado` requeridos por backend en update y se mejoro el manejo de errores mostrando el mensaje real de validacion cuando falle la actualizacion.
+16. Usuarios y navegacion web: al guardar en `Mi perfil` ahora muestra popup `Cambio realizado` y permanece en la misma vista; el popup se cierra en 10 segundos o al hacer click fuera. Ademas, al pulsar el boton del modulo actual en el menu se recarga internamente su informacion sin recargar toda la pagina.
+17. Formularios web: se agrego un icono de candado como indicador global en campos no editables (`disabled`/`readonly`) para todos los modulos, con contraste por tema claro/oscuro.
 
 Fin del documento.

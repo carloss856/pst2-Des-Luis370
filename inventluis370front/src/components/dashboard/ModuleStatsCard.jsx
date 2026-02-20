@@ -60,7 +60,7 @@ export default function ModuleStatsCard({ title, moduleKey }) {
         flexDirection: 'column',
         overflow: 'hidden',
         bgcolor: 'var(--dashboard-card-bg)',
-        color: '#fff',
+        color: 'var(--dashboard-text)',
         border: '1px solid var(--dashboard-card-border)',
       }}
     >
@@ -69,7 +69,7 @@ export default function ModuleStatsCard({ title, moduleKey }) {
           <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
             {title}
           </Typography>
-          {apiPeriodLabel && <Chip size="small" label={apiPeriodLabel} sx={{ bgcolor: 'var(--dashboard-chip-bg)', color: '#fff' }} />}
+          {apiPeriodLabel && <Chip size="small" label={apiPeriodLabel} sx={{ bgcolor: 'var(--dashboard-chip-bg)', color: 'var(--dashboard-text)' }} />}
         </Box>
 
         <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
@@ -82,7 +82,7 @@ export default function ModuleStatsCard({ title, moduleKey }) {
               bgcolor: 'var(--dashboard-control-bg)',
               border: '1px solid var(--dashboard-card-border)',
               '& .MuiToggleButton-root': {
-                color: '#fff',
+                color: 'var(--dashboard-text)',
                 borderColor: 'var(--dashboard-card-border)',
                 textTransform: 'none',
                 fontWeight: 600,
@@ -113,7 +113,7 @@ export default function ModuleStatsCard({ title, moduleKey }) {
               Cargando...
             </Typography>
           ) : error ? (
-            <Typography variant="body2" sx={{ color: '#ffd1d1' }}>
+            <Typography variant="body2" sx={{ color: 'var(--dashboard-muted)' }}>
               No se pudo cargar.
             </Typography>
           ) : buckets.length === 0 ? (

@@ -32,28 +32,28 @@ export default function NotificationBell() {
 
   const open = Boolean(anchorEl);
 
-  const loadNotifications = React.useCallback(async () => {
+  const loadNotifications = React.useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await getNotificaciones();
       const list = Array.isArray(data) ? data : (data?.data || []);
       setItems(list);
     } catch {
       setItems([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   React.useEffect(() => {
     loadNotifications();
-    const timer = window.setInterval(loadNotifications, 30000);
+    const timer = window.setInterval(() => loadNotifications({ silent: true }), 30000);
     return () => window.clearInterval(timer);
   }, [loadNotifications]);
 
   const handleOpen = (event) => {
     setAnchorEl(event.currentTarget);
-    loadNotifications();
+    loadNotifications({ silent: true });
   };
 
   const handleClose = () => {
@@ -116,7 +116,7 @@ export default function NotificationBell() {
             width: 380,
             maxWidth: '92vw',
             bgcolor: 'var(--app-surface)',
-            color: 'var(--app-fg)',
+            color: 'var(--notif-popup-text)',
             border: '1px solid var(--bs-border-color)',
             mt: 1,
           },
@@ -128,9 +128,16 @@ export default function NotificationBell() {
           </Typography>
           <Button
             size="small"
-            startIcon={<DoneAllIcon fontSize="small" />}
+            startIcon={
+              markingAll ? (
+                <CircularProgress size={14} sx={{ color: 'inherit' }} />
+              ) : (
+                <DoneAllIcon fontSize="small" />
+              )
+            }
             onClick={handleMarkAll}
             disabled={markingAll || unreadCount === 0}
+            sx={{ color: 'var(--notif-popup-btn-text)' }}
           >
             Leer todas
           </Button>
@@ -158,7 +165,11 @@ export default function NotificationBell() {
                       onClick={() => handleMarkOne(n)}
                       disabled={n.leida || busyId === n.id_notificacion}
                     >
-                      {n.leida ? 'Visto' : 'Visto'}
+                      {busyId === n.id_notificacion ? (
+                        <CircularProgress size={14} sx={{ color: 'inherit' }} />
+                      ) : (
+                        'Visto'
+                      )}
                     </Button>
                   }
                 >
@@ -166,10 +177,10 @@ export default function NotificationBell() {
                     primary={n.asunto || 'Sin asunto'}
                     secondary={
                       <>
-                        <Typography component="span" variant="caption" sx={{ display: 'block', opacity: 0.8 }}>
+                        <Typography component="span" variant="caption" sx={{ display: 'block', opacity: 0.8, color: 'var(--notif-popup-muted)' }}>
                           {n.mensaje || ''}
                         </Typography>
-                        <Typography component="span" variant="caption" sx={{ opacity: 0.7 }}>
+                        <Typography component="span" variant="caption" sx={{ opacity: 0.7, color: 'var(--notif-popup-muted)' }}>
                           {n.fecha_envio || ''}
                         </Typography>
                       </>
@@ -178,8 +189,10 @@ export default function NotificationBell() {
                       sx: {
                         fontWeight: n.leida ? 500 : 800,
                         pr: 7,
+                        color: 'var(--notif-popup-text)',
                       },
                     }}
+                    secondaryTypographyProps={{ sx: { color: 'var(--notif-popup-muted)' } }}
                   />
                 </ListItem>
               ))}
@@ -188,7 +201,15 @@ export default function NotificationBell() {
         </Box>
         <Divider />
         <Box sx={{ p: 1 }}>
-          <Button fullWidth variant="outlined" onClick={goToAll}>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={goToAll}
+            sx={{
+              color: 'var(--notif-popup-btn-text)',
+              borderColor: 'var(--bs-border-color)',
+            }}
+          >
             Ver todas
           </Button>
         </Box>
