@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-// En desarrollo, si no hay VITE_API_URL, usa el proxy de Vite ("/api")
-const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : '/api');
+// En desarrollo usar proxy de Vite por defecto para evitar CORS.
+// Si necesitas forzar URL directa en dev, define VITE_API_DIRECT=true.
+const envURL = import.meta.env.VITE_API_URL;
+const forceDirect = import.meta.env.VITE_API_DIRECT === 'true';
+const baseURL = import.meta.env.DEV && !forceDirect ? '/api' : (envURL || '/api');
 const api = axios.create({ baseURL });
 if (!import.meta.env.PROD) {
   // Ayuda de depuración: ver URL base efectiva en desarrollo

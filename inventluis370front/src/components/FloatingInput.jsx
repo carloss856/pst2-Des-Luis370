@@ -17,7 +17,7 @@ export default function FloatingInput({
         type={type}
         id={id}
         className={`form-control ${actionButton ? 'pe-5' : ''}`}
-        placeholder={label}
+        placeholder=" "
         value={value}
         onChange={onChange}
         required={required}
