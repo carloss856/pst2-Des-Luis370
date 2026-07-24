@@ -63,3 +63,6 @@ inventluis370front/pnpm-lock.yaml
 
 # Otros
 *.local
+
+# Backups locales (no van al repo)
+*.zip

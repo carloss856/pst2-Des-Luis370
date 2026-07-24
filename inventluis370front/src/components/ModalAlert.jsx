@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import 'bootstrap-icons/font/bootstrap-icons.css';
 
 export default function ModalAlert({ type = "success", message, onClose, autoCloseMs = 5000, closeOnBackdropClick = false }) {
   useEffect(() => {

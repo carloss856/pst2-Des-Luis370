@@ -15,7 +15,7 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import { Link, useLocation } from "react-router-dom";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-import logo from "../assets/Logo_Luis370.png";
+import logo from "../assets/Logo_LUIS370.png";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { canModule, canRoute } from "../utils/rbac";

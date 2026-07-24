@@ -82,9 +82,10 @@ return [
             ]) : [],
         ],
 
-        // MongoDB local connection (no Atlas), via jenssegers/laravel-mongodb
+        // MongoDB local/Atlas connection, via jenssegers/laravel-mongodb
         'mongodb' => [
             'driver' => 'mongodb',
+            'dsn' => env('MONGO_DSN'),
             'host' => env('MONGO_HOST', '127.0.0.1'),
             'port' => env('MONGO_PORT', 27017),
             'database' => env('MONGO_DATABASE', 'luis370Db'),

@@ -1,0 +1,30 @@
+# Render Blueprint — backend Laravel + MongoDB Atlas
+services:
+  - type: web
+    name: luis370-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      # Drivers que NO tocan la DB (evitan el choque con Mongo)
+      - key: DB_CONNECTION
+        value: mongodb
+      - key: SESSION_DRIVER
+        value: cookie
+      - key: CACHE_STORE
+        value: array
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: MONGO_DATABASE
+        value: luis370Db
+      # Secretos: se ponen en el dashboard de Render (sync:false)
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: MONGO_DSN
+        sync: false

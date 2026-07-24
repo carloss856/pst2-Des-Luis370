@@ -15,6 +15,20 @@ export default function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    if (msg) {
+      const timer = setTimeout(() => setMsg(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [msg]);
+
+  React.useEffect(() => {
+    if (err) {
+      const timer = setTimeout(() => setErr(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [err]);
+
   const handleVerifyToken = async (e) => {
     e.preventDefault();
     setErr(''); setMsg('');

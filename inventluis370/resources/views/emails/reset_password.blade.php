@@ -6,7 +6,7 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <meta name="x-apple-disable-message-reformatting">
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:0; }
+    body { font-family: system-ui, Avenir, Helvetica, Arial, sans-serif; background:#f5f5f5; margin:0; padding:0; }
     .wrap { max-width:560px; margin:30px auto; background:#ffffff; border:1px solid #e2e2e2; border-radius:6px; overflow:hidden; }
     .header { background:#1976d2; color:#fff; padding:16px 24px; }
     .content { padding:24px; color:#333; line-height:1.45; }

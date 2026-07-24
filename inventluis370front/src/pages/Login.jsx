@@ -1,6 +1,6 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import api from '../services/api';
-import logo from '../assets/Logo_Luis370.png';
+import logo from '../assets/Logo_LUIS370.png';
 import FloatingInput from '../components/FloatingInput';
 
 export default function Login({ onLogin }) {
@@ -8,6 +8,15 @@ export default function Login({ onLogin }) {
   const [contrasena, setContrasena] = useState('');
   const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError('');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

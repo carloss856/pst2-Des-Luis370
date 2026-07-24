@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import NavBar from "./components/NavBar";
@@ -132,14 +132,9 @@ function AppContent({ rbac, rbacLoading }) {
       }}
     >
       <Routes key={`${location.pathname}:${refreshKey}`}>
-        <Route
-          path="/login"
-          element={
-            <Login onLogin={() => (window.location.href = "/dashboard")} />
-          }
-        />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/login" element={<Navigate to="/dashboard" />} />
+        <Route path="/forgot-password" element={<Navigate to="/dashboard" />} />
+        <Route path="/reset-password" element={<Navigate to="/dashboard" />} />
         <Route
           path="/dashboard"
           element={

@@ -5,8 +5,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    // Permitir cualquier origen (web LAN y apps móviles)
-    'allowed_origins' => ['*'],
+    // Producción: solo el frontend. Añade más orígenes si hace falta.
+    'allowed_origins' => [
+        'https://luis370.careilabs.store',
+        'http://localhost:5173',
+    ],
 
     'allowed_origins_patterns' => [],
 

@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'auto_migrate' => env('AUTO_MIGRATE', false),
+
 ];
