@@ -15,7 +15,7 @@ use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\SolicitudRepuestoController;
 use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\ReporteController;
-use App\Http\Controllers\RmaController;
+use App\Http\Controllers\RMAController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\TarifaServicioController;
 use App\Http\Controllers\MaintenanceController;
@@ -78,7 +78,7 @@ Route::middleware([\App\Http\Middleware\TokenAuth::class, \App\Http\Middleware\R
     Route::post('/notificaciones/marcar-todas-leidas', [NotificacionController::class, 'markAllAsRead'])->name('notificaciones.markAllAsRead');
     Route::apiResource('/notificaciones', NotificacionController::class);
     Route::apiResource('/reportes', ReporteController::class);
-    Route::apiResource('/rma', RmaController::class);
+    Route::apiResource('/rma', RMAController::class);
     Route::apiResource('/tarifas-servicio', TarifaServicioController::class);
     Route::get('/tarifas-servicio/{id}/historial', [TarifaServicioController::class, 'history'])->name('tarifas-servicio.historial.index');
     // Mantenimiento (solo Admin/Gerente)
