@@ -4,6 +4,7 @@ import { getEquipos } from '../../services/equipos';
 import { useNavigate } from 'react-router-dom';
 import { getRMAs } from '../../services/rma';
 import { getUsuarios } from '../../services/usuarios';
+import { clearCachedValue } from '../../utils/requestCache';
 
 const ServicioForm = () => {
   const [form, setForm] = useState({
@@ -23,6 +24,12 @@ const ServicioForm = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Este formulario necesita los RMA/usuarios más recientes (p. ej. un cliente
+    // recién creado); el cache de 5 min de getRMAs/getUsuarios puede haber quedado
+    // "envenenado" con una lista vacía de antes de que existiera ese usuario, así
+    // que se descarta el cache y se pide siempre fresco al montar el formulario.
+    clearCachedValue('rma:list');
+    clearCachedValue('usuarios:list');
     getRMAs().then(setRMAs);
     getUsuarios().then(setUsuarios);
     getEquipos().then(setEquipos);
@@ -73,10 +80,10 @@ const ServicioForm = () => {
           >
             <option value="" disabled>Seleccione una opcion</option>
             {rmas.map(rma => {
-              const users = usuarios.find(u => u.id_persona === rma.id_persona);
+              const usuario = usuarios.find(u => u.id_persona === rma.id_persona);
               return (
                 <option key={rma.rma} value={rma.rma}>
-                  { users && ( users.nombre) }
+                  {usuario ? usuario.nombre : rma.rma}
                 </option>
               );
             })}

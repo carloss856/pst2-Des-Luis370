@@ -1,11 +1,22 @@
 import api from './api';
-import { cachedGet } from '../utils/requestCache';
+import { cachedGet, clearCachedValue } from '../utils/requestCache';
 
 export const getServicios = () => cachedGet('servicios:list', () => api.get('/servicios').then(res => res.data), { ttlMs: 300_000, backgroundRefresh: true });
 export const getServicio = (id) => api.get(`/servicios/${id}`).then(res => res.data);
-export const createServicio = (data) => api.post('/servicios', data).then(res => res.data);
-export const updateServicio = (id, data) => api.put(`/servicios/${id}`, data).then(res => res.data);
-export const deleteServicio = (id) => api.delete(`/servicios/${id}`).then(res => res.data);
+export const createServicio = (data) => api.post('/servicios', data).then(res => {
+  clearCachedValue('servicios:list');
+  return res.data;
+});
+export const updateServicio = (id, data) => api.put(`/servicios/${id}`, data).then(res => {
+  clearCachedValue('servicios:list');
+  // Al finalizar un servicio el backend puede generar una garantía automáticamente.
+  clearCachedValue('garantias:list');
+  return res.data;
+});
+export const deleteServicio = (id) => api.delete(`/servicios/${id}`).then(res => {
+  clearCachedValue('servicios:list');
+  return res.data;
+});
 
 // Partes de trabajo (horas técnico) por servicio
 export const getPartesServicio = (idServicio) =>

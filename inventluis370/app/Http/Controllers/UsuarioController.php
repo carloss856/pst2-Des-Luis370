@@ -42,6 +42,9 @@ class UsuarioController extends Controller
         if ($request->has('email')) {
             $request->merge(['email' => Email::normalize($request->input('email'))]);
         }
+        if ($request->has('tipo')) {
+            $request->merge(['tipo' => Role::normalize($request->input('tipo'))]);
+        }
         $rules = [
             'nombre' => 'required|string|max:100',
             'email' => 'required|email|unique:mongodb.usuario,email',
@@ -171,6 +174,9 @@ class UsuarioController extends Controller
     {
         if ($request->has('email')) {
             $request->merge(['email' => Email::normalize($request->input('email'))]);
+        }
+        if ($request->has('tipo')) {
+            $request->merge(['tipo' => Role::normalize($request->input('tipo'))]);
         }
         $usuario = Usuario::where('id_persona', $id)->first();
         if (!$usuario) {

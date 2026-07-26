@@ -79,7 +79,8 @@ const ServiciosList = () => {
               <th>Fecha Ingreso</th>
               <th>Problema Reportado</th>
               <th>Estado</th>
-              <th>Costo</th>
+              <th>Costo Estimado</th>
+              <th>Costo Real</th>
               <th>Validado</th>
               {(canParts || canEdit || canDelete) && <th>Acciones</th>}
             </tr>
@@ -97,7 +98,8 @@ const ServiciosList = () => {
                   <td>{servicio.fecha_ingreso}</td>
                   <td>{servicio.problema_reportado}</td>
                   <td>{servicio.estado}</td>
-                  <td>{servicio.costo_real}</td>
+                  <td>{servicio.costo_estimado ?? '-'}</td>
+                  <td>{servicio.costo_real ?? '-'}</td>
                   <td>{servicio.validado_por_gerente ? 'Sí' : 'No'}</td>
                   {(canParts || canEdit || canDelete) && (
                     <td>

@@ -12,6 +12,7 @@ use App\Traits\NotificacionTrait;
 use Illuminate\Support\Facades\Auth;
 use App\Support\Email;
 use App\Support\BusinessId;
+use App\Support\Role;
 use App\Models\Empresa;
 
 class AuthController extends Controller
@@ -22,6 +23,9 @@ class AuthController extends Controller
     {
         if ($request->has('email')) {
             $request->merge(['email' => Email::normalize($request->input('email'))]);
+        }
+        if ($request->has('tipo')) {
+            $request->merge(['tipo' => Role::normalize($request->input('tipo'))]);
         }
         $rules = [
             'nombre' => 'required|string|max:100',

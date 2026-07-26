@@ -25,15 +25,24 @@ const GarantiasList = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [serviciosData, garantiasData] = await Promise.all([
+        const [serviciosRes, garantiasRes] = await Promise.allSettled([
           getServicios(),
           getGarantias(),
         ]);
 
-        setServicios(serviciosData);
-        setGarantias(garantiasData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
+        setServicios(serviciosRes.status === "fulfilled" && Array.isArray(serviciosRes.value) ? serviciosRes.value : []);
+        setGarantias(garantiasRes.status === "fulfilled" && Array.isArray(garantiasRes.value) ? garantiasRes.value : []);
+
+        // Si falla la carga de garantías (lo principal de esta pantalla), se
+        // avisa en vez de dejar la tabla vacía sin explicación.
+        if (garantiasRes.status === "rejected") {
+          const status = garantiasRes.reason?.response?.status;
+          const msg = garantiasRes.reason?.response?.data?.message;
+          setAlert({
+            type: "danger",
+            message: `Error cargando garantías${status ? ` (HTTP ${status})` : ""}${msg ? `: ${msg}` : ""}.`,
+          });
+        }
       } finally {
         setLoading(false);
       }

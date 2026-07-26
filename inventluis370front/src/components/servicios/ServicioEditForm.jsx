@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getRMAs } from '../../services/rma';
 import { getUsuarios } from '../../services/usuarios';
 import { getEquipos } from '../../services/equipos';
+import { clearCachedValue } from '../../utils/requestCache';
 import ServicePartsPanel from '../../components/ServicePartsPanel';
 
 const ServicioEditForm = () => {
@@ -30,6 +31,10 @@ const ServicioEditForm = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Descarta el cache: la lista de RMA/usuarios puede haber quedado obsoleta
+      // (p. ej. un cliente creado luego de la última carga).
+      clearCachedValue('rma:list');
+      clearCachedValue('usuarios:list');
       const [rmasData, usuariosData, equiposData] = await Promise.all([
         getRMAs(),
         getUsuarios(),

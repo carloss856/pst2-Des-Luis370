@@ -138,9 +138,6 @@ class ServicioController extends Controller
         if (!$servicio) {
             $servicio = Servicio::where('_id', $id)->firstOrFail();
         }
-        $validated = $request->all();
-        $estadoAnterior = $servicio->validado_por_gerente;
-        $servicio->update($validated);
 
         $request->validate([
             'id_equipo' => 'required|string',
@@ -159,16 +156,21 @@ class ServicioController extends Controller
         }
         $request->merge(['id_equipo' => $resolvedEquipo]);
 
-        if (!$estadoAnterior && $servicio->validado_por_gerente) {
+        $estadoAnterior = $servicio->estado;
+        $servicio->update($request->only(['id_equipo','codigo_rma','fecha_ingreso','problema_reportado','estado','costo_estimado','costo_real','validado_por_gerente']));
+
+        // La garantía se genera automáticamente al finalizar el servicio (no hay
+        // creación manual de garantías en la UI, es intencional).
+        if ($estadoAnterior !== 'Finalizado' && $servicio->estado === 'Finalizado') {
             \App\Models\Garantia::create([
+                'id_garantia' => 'GAR-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
                 'id_servicio' => $servicio->id_servicio,
                 'fecha_inicio' => now(),
                 'fecha_fin' => now()->addMonths(6),
-                'estado' => 'Activa',
+                'observaciones' => 'Garantía generada automáticamente al finalizar el servicio.',
             ]);
         }
 
-        $servicio->update($request->only(['id_equipo','codigo_rma','fecha_ingreso','problema_reportado','estado','costo_estimado','costo_real','validado_por_gerente']));
         $user = Auth::user();
         if (!$user) {
             return response()->json(['error' => 'No autenticado'], 401);
