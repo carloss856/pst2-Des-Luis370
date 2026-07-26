@@ -53,7 +53,11 @@ function SidebarContent({ location, rol, handleLogout, onClose, rbac, rbacLoadin
   };
 
   const handleModuleClick = (event, link) => {
-    const isCurrent = location.pathname.startsWith(link.to);
+    // Solo se considera "módulo actual" si estamos exactamente en su lista
+    // (ej. /usuarios), no en una subruta como /usuarios/crear o
+    // /usuarios/:id/editar — de lo contrario el clic queda "atrapado" ahí
+    // en vez de navegar de verdad a la lista.
+    const isCurrent = location.pathname === link.to || location.pathname === `${link.to}/`;
     if (isCurrent) {
       event.preventDefault();
       window.dispatchEvent(new CustomEvent('app:module-refresh', { detail: { path: link.to, at: Date.now() } }));
