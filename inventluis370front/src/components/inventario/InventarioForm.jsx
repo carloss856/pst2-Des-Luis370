@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createEntrada } from '../../services/inventario';
-import { getRepuestos, getRepuesto, updateRepuesto } from '../../services/repuestos';
+import { getRepuestos } from '../../services/repuestos';
 
 export default function InventarioForm() {
     const [form, setForm] = useState({
@@ -31,15 +31,11 @@ export default function InventarioForm() {
         setError('');
         setSaving(true);
         try {
-            const repuesto = await getRepuesto(form.id_repuesto);
-            const cantidad_disponible = repuesto ? parseInt(repuesto.cantidad_disponible) : 0;
-            const nuevaCantidad = cantidad_disponible + parseInt(form.cantidad_entrada);
-            await updateRepuesto(form.id_repuesto, {
-                nombre_repuesto: repuesto.nombre_repuesto,
-                cantidad_disponible: nuevaCantidad,
-                costo_unitario: repuesto.costo_unitario ?? 0,
-                nivel_critico: repuesto.nivel_critico ?? 0
-            });
+            // El backend ya incrementa cantidad_disponible del repuesto al crear la entrada
+            // (InventarioController::store). Antes este formulario ADEMAS hacia un PUT manual
+            // a /repuestos/{id} para sumar la cantidad, lo cual duplicaba el incremento de stock
+            // y encima requeria permiso de "editar" repuestos (que Tecnico no tiene, solo "ver"),
+            // rompiendo el formulario con 403 para ese rol.
             await createEntrada(form);
             navigate('/inventario');
         } catch (err) {
