@@ -65,6 +65,11 @@ class UsuarioController extends Controller
         }
 
         $data = $request->only(['nombre','email','telefono','tipo','contrasena','id_empresa','validado_por_gerente']);
+        // Por defecto, los usuarios nuevos reciben notificaciones (antes quedaba sin definir
+        // y el envio de correo se omitia en silencio hasta que alguien lo activara a mano).
+        if (!$request->has('recibir_notificaciones')) {
+            $data['recibir_notificaciones'] = true;
+        }
         if (empty($data['id_persona'])) {
             do {
                 $candidate = 'USR-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(8));

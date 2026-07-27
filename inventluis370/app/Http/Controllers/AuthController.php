@@ -52,6 +52,8 @@ class AuthController extends Controller
             'tipo' => $request->tipo,
             'contrasena' => Hash::make($request->contrasena),
             'id_empresa' => $request->id_empresa,
+            // Por defecto, los usuarios nuevos reciben notificaciones.
+            'recibir_notificaciones' => true,
         ];
         // Si es Empresa, crear/asegurar la empresa vinculada cuando no se provee id_empresa
         if ($request->tipo === 'Empresa') {
