@@ -6,7 +6,8 @@ export default function ResetPasswordForm() {
   const [params] = useSearchParams();
   // El email llega oculto en el query (no se muestra ni se edita)
   const hiddenEmail = params.get('email') || '';
-  const [token, setToken] = useState('');
+  // Si el enlace del correo trae el token, se precarga (el usuario también puede pegarlo a mano como siempre)
+  const [token, setToken] = useState(params.get('token') || '');
   const [step, setStep] = useState('token'); // 'token' | 'password'
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
