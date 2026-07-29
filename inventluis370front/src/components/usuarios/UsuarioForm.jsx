@@ -74,7 +74,7 @@ export default function UsuarioForm() {
           <select name="tipo" className="form-select" value={formUsuario.tipo} onChange={handleChange} required>
             <option value="" disabled>Seleccione un tipo</option>
             <option value="Administrador">Administrador</option>
-            <option value="Tecnico">Tecnico</option>
+            <option value="Técnico">Técnico</option>
             <option value="Gerente">Gerente</option>
             <option value="Cliente">Cliente</option>
             <option value="Empresa">Empresa</option>

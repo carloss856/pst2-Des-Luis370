@@ -168,7 +168,7 @@ export default function UsuarioEditForm({ selfOnly = false }) {
             <select name="tipo" className="form-select" value={form.tipo} onChange={handleChange} required>
               <option value="" disabled>Seleccione un tipo</option>
               <option value="Administrador">Administrador</option>
-              <option value="Tecnico">Tecnico</option>
+              <option value="Técnico">Técnico</option>
               <option value="Gerente">Gerente</option>
               <option value="Empresa">Empresa</option>
               <option value="Cliente">Cliente</option>
